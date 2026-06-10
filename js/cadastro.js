@@ -125,7 +125,6 @@ async function controlarOpcoesCaldos() {
     if (!temCaldoDisponivel) {
         selectCaldo.innerHTML = '<option value="">⚠️ Todos os caldos atingiram o limite de 3 pessoas!</option>';
     }
-}
 
 // Regra de Negócio: Calcula o valor total do PIX baseado na estrutura do grupo familiar
 function calcularPix() {
