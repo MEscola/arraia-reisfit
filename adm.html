@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arraiá ReisFit — Financeiro ADM 🔑</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        #tela-adm { display: block; }
+        /* Adiciona um container de segurança para esconder o caixa antes de digitar a senha */
+        .conteudo-restrito { display: none; }
+        .conteudo-restrito.autorizado { display: block; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600" alt="Banner Arraiá">
+    </header>
+
+    <div class="container">
+        <div id="bloco-seguro" class="conteudo-restrito">
+            <section id="tela-adm">
+                <h2 style="color: #FFC107;">Controle Financeiro ADM</h2>
+                <p id="total-caixa" style="margin-top: 5px; color: #4CAF50; font-weight: bold;">Total Previsto em Caixa: R$ 0,00</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Participante</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-adm-corpo">
+                        </tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+
+    <nav>
+        <div class="nav-bar">
+            <a href="index.html" class="nav-item" style="text-decoration: none;">📝 Inscrição</a>
+            <a href="lista.html" class="nav-item" style="text-decoration: none;">🍿 Espiar Mesa</a>
+            <a href="adm.html" class="nav-item active" style="text-decoration: none;">🔑 Caixa ADM</a>
+        </div>
+    </nav>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/adm.js"></script>
+    <script>
+        // Segurança de barreira caso digitem a URL direto no navegador
+        window.onload = function() {
+            const senha = prompt("Acesso Restrito. Digite a senha do Financeiro:");
+            if (senha === "ReisFit2026") {
+                document.getElementById('bloco-seguro').classList.add('autorizado');
+                carregarPainelADM();
+            } else {
+                alert("Senha inválida!");
+                window.location.href = "index.html"; // Chuta o usuário para a página inicial
+            }
+        };
+    </script>
+</body>
+</html>

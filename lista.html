@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arraiá ReisFit — Quem vai 🍿</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Como esta tela não oculta nada por padrão, garantimos que a section apareça */
+        #tela-lista { display: block; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600" alt="Banner Arraiá">
+    </header>
+
+    <div class="container">
+        <section id="tela-lista">
+            <h2 style="color: #FFC107; margin-bottom: 15px;">Quem vai e o que vai levar 🤠</h2>
+            <div id="lista-alunos-container">Carregando dados da mesa coletiva...</div>
+        </section>
+    </div>
+
+    <nav>
+        <div class="nav-bar">
+            <a href="index.html" class="nav-item" style="text-decoration: none;">📝 Inscrição</a>
+            <a href="lista.html" class="nav-item active" style="text-decoration: none;">🍿 Espiar Mesa</a>
+            <a href="#" class="nav-item" style="text-decoration: none;" onclick="verificarAcessoAdmRedirecionamento()">🔑 Caixa ADM</a>
+        </div>
+    </nav>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/lista.js"></script>
+    <script>
+        // Roda a função de carregar assim que a página abre
+        window.onload = function() {
+            carregarListaPublica();
+        };
+
+        function verificarAcessoAdmRedirecionamento() {
+            const senha = prompt("Digite a senha do Financeiro ADM:");
+            if (senha === "ReisFit2026") {
+                window.location.href = "adm.html";
+            } else if (senha !== null) {
+                alert("Senha incorreta, acesso negado!");
+            }
+        }
+    </script>
+</body>
+</html>

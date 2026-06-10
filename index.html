@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arraiá ReisFit — Inscrição 🤠🔥</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header>
+        <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600" alt="Banner Arraiá">
+    </header>
+
+    <div class="container">
+        <section id="tela-cadastro">
+            <form id="form-inscricao">
+                <div class="form-group">
+                    <label for="nome">Nome do Aluno (Titular)</label>
+                    <input type="text" id="nome" required placeholder="Digite seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label>Você é Patrocinador do Evento?</label>
+                    <select id="patrocinador" onchange="calcularPix()">
+                        <option value="nao">Não</option>
+                        <option value="sim">Sim (Entrada Titular Isenta)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="qtd_conjuges">Quantidade de Cônjuges/Filhos (R$ 15,00 cada)</label>
+                    <input type="number" id="qtd_conjuges" min="0" value="0" oninput="calcularPix()">
+                </div>
+                <div class="form-group">
+                    <label for="qtd_amigos">Quantidade de Amigos/Parentes (R$ 20,00 cada)</label>
+                    <input type="number" id="qtd_amigos" min="0" value="0" oninput="calcularPix()">
+                </div>
+                <div class="form-group">
+                    <label for="criancas">Crianças menores de 13 anos? (Nome/Idade para controle)</label>
+                    <textarea id="criancas" rows="2" placeholder="Se houver, liste aqui..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Vai participar do rodízio de caldos?</label>
+                    <select id="leva_caldo">
+                        <option value="Não">Não</option>
+                        <option value="Sim">Sim, quero incluir meu grupo no caldo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="categoria_prato">O que vai trazer para a mesa coletiva?</label>
+                    <select id="categoria_prato" onchange="controlarCamposPrato()" required>
+                        <option value="">Selecione...</option>
+                        <option value="Doce">Prato Doce 🍫</option>
+                        <option value="Salgado">Prato Salgado 🥐</option>
+                        <option value="Bebida">Bebida 🥤</option>
+                    </select>
+                </div>
+                <div id="grupo-sabor" class="form-group hidden">
+                    <label for="sabor_prato">Especifique o prato/bebida que vai trazer:</label>
+                    <input type="text" id="sabor_prato" placeholder="Ex: Bolo de milho, Coxinha, Engradado de refri">
+                </div>
+
+                <div class="pix-box">
+                    <p>Total do investimento via PIX:</p>
+                    <div class="pix-value" id="label-pix">R$ 15,00</div>
+                    <small style="color: #aaa; display:block; margin-top:5px;">Chave PIX: recepcao@reisfit.com.br</small>
+                </div>
+                
+                <button type="submit" id="btn-enviar" class="btn btn-primary" style="margin-top: 15px;">Confirmar Minha Inscrição</button>
+            </form>
+        </section>
+    </div>
+
+    <nav>
+        <div class="nav-bar">
+            <a href="index.html" class="nav-item active" style="text-decoration: none;">📝 Inscrição</a>
+            <a href="lista.html" class="nav-item" style="text-decoration: none;">🍿 Espiar Mesa</a>
+            <a href="#" class="nav-item" style="text-decoration: none;" onclick="verificarAcessoAdmRedirecionamento()">🔑 Caixa ADM</a>
+        </div>
+    </nav>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/cadastro.js"></script>
+    <script>
+        // Pequena função auxiliar apenas para validar a senha antes de mudar de página
+        function verificarAcessoAdmRedirecionamento() {
+            const senha = prompt("Digite a senha do Financeiro ADM:");
+            if (senha === "ReisFit2026") {
+                window.location.href = "adm.html";
+            } else if (senha !== null) {
+                alert("Senha incorreta, acesso negado!");
+            }
+        }
+    </script>
+</body>
+</html>
