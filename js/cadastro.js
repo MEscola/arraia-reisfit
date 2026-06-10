@@ -17,14 +17,34 @@ function ajustarFluxoGrupo() {
     const fluxoSolteiro = document.getElementById('fluxo-solteiro');
     const fluxoFamilia = document.getElementById('fluxo-familia');
     
+    // Captura as caixas de acompanhantes para poder sumir com elas
+    const campoConjugesGroup = document.getElementById('qtd_conjuges')?.closest('.form-group');
+    const campoAmigosGroup = document.getElementById('qtd_amigos')?.closest('.form-group');
+    const campoCriancasGroup = document.getElementById('criancas')?.closest('.form-group');
+
     if (!tipoGrupoField || !fluxoSolteiro || !fluxoFamilia) return;
 
     if (tipoGrupoField.value === "Solteiro") {
+        // Se for Solteiro, mostra a escolha simples de prato e esconde acompanhantes
         fluxoSolteiro.classList.remove('hidden');
         fluxoFamilia.classList.add('hidden');
+        
+        if(campoConjugesGroup) campoConjugesGroup.classList.add('hidden');
+        if(campoAmigosGroup) campoAmigosGroup.classList.add('hidden');
+        if(campoCriancasGroup) campoCriancasGroup.classList.add('hidden');
+
+        // Zera os valores para não somar no PIX por engano
+        if(document.getElementById('qtd_conjuges')) document.getElementById('qtd_conjuges').value = 0;
+        if(document.getElementById('qtd_amigos')) document.getElementById('qtd_amigos').value = 0;
+        if(document.getElementById('criancas')) document.getElementById('criancas').value = '';
     } else {
+        // Se for Casal/Família, abre a digitação obrigatória e as caixas de acompanhantes
         fluxoSolteiro.classList.add('hidden');
         fluxoFamilia.classList.remove('hidden');
+        
+        if(campoConjugesGroup) campoConjugesGroup.classList.remove('hidden');
+        if(campoAmigosGroup) campoAmigosGroup.classList.remove('hidden');
+        if(campoCriancasGroup) campoCriancasGroup.classList.remove('hidden');
     }
     calcularPix();
 }
@@ -60,9 +80,9 @@ async function controlarOpcoesCaldos() {
     grupoCaldo.classList.remove('hidden');
     selectCaldo.innerHTML = '<option value="">Buscando caldos disponíveis...</option>';
 
-    // Puxa as inscrições existentes do Supabase com tratamento de segurança
+    // CORREÇÃO CRÍTICA: Mudado de 'inscricoes_arraia' para 'cadastro_arraia'
     const { data: inscritos, error } = await _supabase
-        .from('inscricoes_arraia')
+        .from('cadastro_arraia')
         .select('sabor_prato, qtd_conjuges, qtd_amigos');
 
     if (error) {
@@ -71,11 +91,9 @@ async function controlarOpcoesCaldos() {
         return;
     }
 
-    // Inicializa o contador zerado para cada sabor oficial
     let mapaCaldos = {};
     CALDOS_OFICIAIS.forEach(c => mapaCaldos[c] = 0);
 
-    // Contabiliza de forma segura, tratando possíveis valores nulos ou vazios vindos do banco
     if (inscritos && Array.isArray(inscritos)) {
         inscritos.forEach(item => {
             if (item.sabor_prato && mapaCaldos[item.sabor_prato] !== undefined) {
@@ -86,18 +104,15 @@ async function controlarOpcoesCaldos() {
         });
     }
 
-    // Calcula o tamanho do grupo que está tentando se inscrever agora na tela
     const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuges')?.value) || 0;
     const qtdAmigosAtuais = Number(document.getElementById('qtd_amigos')?.value) || 0;
     const tamanhoGrupoAtual = 1 + qtdConjugesAtuais + qtdAmigosAtuais;
 
-    // Monta o seletor mostrando apenas os caldos liberados pelo limite de 3 pessoas físicas
     selectCaldo.innerHTML = '<option value="">Selecione um caldo...</option>';
     let temCaldoDisponivel = false;
 
     CALDOS_OFICIAIS.forEach(caldo => {
         const vagasOcupadas = mapaCaldos[caldo];
-        // Se couber o grupo atual sem ultrapassar 3 pessoas físicas no total dividindo o caldo, exibe a opção
         if ((vagasOcupadas + tamanhoGrupoAtual) <= 3) {
             selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${vagasOcupadas}/3 ocupados)</option>`;
             temCaldoDisponivel = true;
@@ -122,21 +137,17 @@ function calcularPix() {
     const isPatrocinador = patrocinadorField.value === 'sim';
     const entradaTitular = isPatrocinador ? 0 : 15;
     
-    // Regra matemática estabelecida: Titular (0 ou 15) + Cônjuges (15 cada) + Amigos (20 cada)
     const total = entradaTitular + (qtdConjuges * 15) + (qtdAmigos * 20);
     
-    // Updates the visual container in real time
     labelPix.innerText = `R$ ${total},00`;
     return total;
 }
 
 // Inicializador Único de Ciclo de Vida: Executa TUDO com proteção após o DOM estar desenhado na tela
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. Alinha a interface inicial e calcula o primeiro valor (R$ 15,00)
     ajustarFluxoGrupo();
     calcularPix();
 
-    // 2. Protege as escutas reativas de input contra erros de carregamento 'null'
     const campoConjuges = document.getElementById('qtd_conjuges');
     const campoAmigos = document.getElementById('qtd_amigos');
 
@@ -147,7 +158,6 @@ window.addEventListener('DOMContentLoaded', () => {
         campoAmigos.addEventListener('input', () => { calcularPix(); controlarOpcoesCaldos(); });
     }
 
-    // 3. Processa e intercepta a submissão do formulário com segurança
     const formulario = document.getElementById('form-inscricao');
     if (formulario) {
         formulario.addEventListener('submit', async (e) => {
@@ -184,7 +194,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
             } else {
-                // Regra Família: Traz os dois pratos de forma compulsória
                 const doce = document.getElementById('sabor_doce_familia').value || "Doce não especificado";
                 const salgado = document.getElementById('sabor_salgado_familia').value || "Salgado não especificado";
                 
@@ -206,7 +215,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 status_pix: 'Pendente'
             };
 
-            const { error } = await _supabase.from('inscricoes_arraia').insert([payload]);
+            // CORREÇÃO CRÍTICA: Mudado para salvar na tabela 'cadastro_arraia'
+            const { error } = await _supabase.from('cadastro_arraia').insert([payload]);
 
             if (error) {
                 alert("Erro ao processar inscrição: " + error.message);
