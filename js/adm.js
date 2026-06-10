@@ -11,7 +11,7 @@ async function carregarPainelADM() {
     // Adicionado o campo 'categoria_prato' para análise visual do ADM se necessário
     const { data, error } = await _supabase
         .from('cadastro_arraia')
-        .select('id, nome, total_pix, status_pix, qtd_conjuges, qtd_amigos, categoria_prato')
+        .select('id, nome, total_pix, status_pix, qtd_conjuge, qtd_amigos, categoria_prato')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -34,7 +34,7 @@ async function carregarPainelADM() {
 
         if (Number(aluno.total_pix) > 0) {
             // Descobre o custo total gerado puramente pelos acompanhantes cadastrados nesta linha
-            const custoAcompanhantes = ((Number(aluno.qtd_conjuges) || 0) * 15) + ((Number(aluno.qtd_amigos) || 0) * 20);
+            const custoAcompanhantes = ((Number(aluno.qtd_conjuge) || 0) * 15) + ((Number(aluno.qtd_amigos) || 0) * 20);
             
             // Se o total_pix pago for maior que o custo dos acompanhantes, significa que o titular NÃO é patrocinador isento. Logo, ele conta como 1 pagante!
             if (Number(aluno.total_pix) > custoAcompanhantes) {
@@ -42,7 +42,7 @@ async function carregarPainelADM() {
             }
             
             // Soma os cônjuges e amigos maiores de 13 anos (as crianças não alteram o total_pix, então não entram aqui)
-            pagantesDestaInscricao += (Number(aluno.qtd_conjuges) || 0);
+            pagantesDestaInscricao += (Number(aluno.qtd_conjuge) || 0);
             pagantesDestaInscricao += (Number(aluno.qtd_amigos) || 0);
         }
 
@@ -50,7 +50,7 @@ async function carregarPainelADM() {
         totalPagantesGeral += pagantesDestaInscricao;
 
         // 3. Renderização reativa da linha administrativa com os contadores de apoio
-        const totalPessoasGrupo = 1 + (Number(aluno.qtd_conjuges) || 0) + (Number(aluno.qtd_amigos) || 0);
+        const totalPessoasGrupo = 1 + (Number(aluno.qtd_conjuge) || 0) + (Number(aluno.qtd_amigos) || 0);
         
         let acao = aluno.status_pix === 'Pendente' 
             ? `<button class="btn btn-primary" style="padding:6px 12px; font-size:12px; width:auto;" onclick="confirmarBaixaPix(${aluno.id})">Baixa PIX</button>` 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
     <header>
@@ -15,17 +17,17 @@
 
     <div class="container">
         <h1>🤠 Inscrição Arraiá</h1>
-                
+
         <section id="tela-cadastro">
             <form id="form-inscricao">
-                
+
                 <!-- CARD 1: Dados do Aluno -->
                 <div class="form-card">
                     <div class="form-group">
                         <label for="nome">Nome do Aluno (Titular)</label>
                         <input type="text" id="nome" required placeholder="Digite seu nome completo">
                     </div>
-                    
+
                     <!-- Componente Switch Discreto para o Patrocinador -->
                     <div class="sponsor-box">
                         <div class="sponsor-info">
@@ -50,8 +52,8 @@
                 <!-- CARD 2: Bloco de Acompanhantes (Escondido por padrão) -->
                 <div id="campos-acompanhantes" class="form-card hidden">
                     <div class="form-group">
-                        <label for="qtd_conjuges">Cônjuges/Filhos > 13 anos (R$ 15,00 cada)</label>
-                        <input type="number" id="qtd_conjuges" min="0" value="0" oninput="calcularPix()">
+                        <label for="qtd_conjuge">Cônjuges/Filhos > 13 anos (R$ 15,00 cada)</label>
+                        <input type="number" id="qtd_conjuge" min="0" value="0" oninput="calcularPix()">
                     </div>
                     <div class="form-group">
                         <label for="qtd_amigos">Amigos/Visitantes (R$ 20,00 cada)</label>
@@ -59,7 +61,8 @@
                     </div>
                     <div class="form-group">
                         <label for="criancas">Crianças < 13 anos (Não pagam)</label>
-                        <textarea id="criancas" rows="2" placeholder="Liste nomes e idades para controle..."></textarea>
+                                <textarea id="criancas" rows="2"
+                                    placeholder="Liste nomes e idades para controle..."></textarea>
                     </div>
                 </div>
 
@@ -72,7 +75,7 @@
                             <option value="Sim">Sim</option>
                         </select>
                     </div>
-                    
+
                     <div id="grupo-sabores-caldo" class="form-group hidden">
                         <label for="sabor_caldo">Escolha o sabor do caldo:</label>
                         <select id="sabor_caldo">
@@ -150,4 +153,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -26,7 +26,7 @@ function ajustarFluxoGrupo() {
         blocoAcompanhantes.classList.add('hidden');
         
         // Zera os valores para o cálculo correto do PIX no singular
-        if(document.getElementById('qtd_conjuges')) document.getElementById('qtd_conjuges').value = 0;
+        if(document.getElementById('qtd_conjuge')) document.getElementById('qtd_conjuge').value = 0;
         if(document.getElementById('qtd_amigos')) document.getElementById('qtd_amigos').value = 0;
         if(document.getElementById('criancas')) document.getElementById('criancas').value = '';
     } else {
@@ -94,7 +94,7 @@ async function controlarOpcoesCaldos() {
     }
 
     // Lê os inputs do HTML da tela atual (os IDs do seu index.html permanecem os mesmos)
-    const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuges')?.value) || 0;
+    const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuge')?.value) || 0;
     const qtdAmigosAtuais = Number(document.getElementById('qtd_amigos')?.value) || 0;
     const tamanhoGrupoAtual = 1 + qtdConjugesAtuais + qtdAmigosAtuais;
 
@@ -119,7 +119,7 @@ function calcularPix() {
     const patrocinadorCheckbox = document.getElementById('patrocinador');
     const labelPix = document.getElementById('label-pix');
     
-    const qtdConjuges = Number(document.getElementById('qtd_conjuges')?.value) || 0;
+    const qtdConjuges = Number(document.getElementById('qtd_conjuge')?.value) || 0;
     const qtdAmigos = Number(document.getElementById('qtd_amigos')?.value) || 0;
 
     if (!labelPix) return 0;
@@ -140,7 +140,7 @@ window.addEventListener('DOMContentLoaded', () => {
     calcularPix();
 
     // DISPARADORES REATIVOS DE INPUT DO LAYOUT APP
-    const campoConjuges = document.getElementById('qtd_conjuges');
+    const campoConjuges = document.getElementById('qtd_conjuge');
     const campoAmigos = document.getElementById('qtd_amigos');
     const selectTipoGrupo = document.getElementById('tipo_grupo');
     const selectLevaCaldo = document.getElementById('leva_caldo');
@@ -171,7 +171,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const tipoGrupo = document.getElementById('tipo_grupo').value;
             const levaCaldo = document.getElementById('leva_caldo').value;
             const saborCaldo = document.getElementById('sabor_caldo').value;
-            const qtdConjuges = Number(document.getElementById('qtd_conjuges').value) || 0;
+            const qtdConjuges = Number(document.getElementById('qtd_conjuge').value) || 0;
             const qtdAmigos = Number(document.getElementById('qtd_amigos').value) || 0;
 
             if (levaCaldo === 'Sim' && !saborCaldo) {
