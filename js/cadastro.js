@@ -68,7 +68,7 @@ async function controlarOpcoesCaldos() {
     grupoCaldo.classList.remove('hidden');
     selectCaldo.innerHTML = '<option value="">Buscando caldos disponíveis...</option>';
 
-    // CORREÇÃO: Buscando 'qtd_conjuge' no singular para bater com o banco
+    // CORREÇÃO CRÍTICA: Buscando 'qtd_conjuge' no singular para não quebrar a árvore do cache do Supabase
     const { data: inscritos, error } = await _supabase
         .from('cadastro_arraia')
         .select('sabor_prato, qtd_conjuge, qtd_amigos');
@@ -85,13 +85,15 @@ async function controlarOpcoesCaldos() {
     if (inscritos && Array.isArray(inscritos)) {
         inscritos.forEach(item => {
             if (item.sabor_prato && mapaCaldos[item.sabor_prato] !== undefined) {
-                const conjuge = Number(item.qtd_conjuge) || 0; // Mapeado no singular
+                // CORREÇÃO: Lendo 'item.qtd_conjuge' no singular vindo do payload do Supabase
+                const conjuge = Number(item.qtd_conjuge) || 0; 
                 const amigos = Number(item.qtd_amigos) || 0;
                 mapaCaldos[item.sabor_prato] += (1 + conjuge + amigos);
             }
         });
     }
 
+    // Lê os inputs do HTML da tela atual (os IDs do seu index.html permanecem os mesmos)
     const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuges')?.value) || 0;
     const qtdAmigosAtuais = Number(document.getElementById('qtd_amigos')?.value) || 0;
     const tamanhoGrupoAtual = 1 + qtdConjugesAtuais + qtdAmigosAtuais;
@@ -137,7 +139,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ajustarFluxoGrupo();
     calcularPix();
 
-    // DISPARADORES REATIVOS DE INPUT
+    // DISPARADORES REATIVOS DE INPUT DO LAYOUT APP
     const campoConjuges = document.getElementById('qtd_conjuges');
     const campoAmigos = document.getElementById('qtd_amigos');
     const selectTipoGrupo = document.getElementById('tipo_grupo');
@@ -156,7 +158,7 @@ window.addEventListener('DOMContentLoaded', () => {
         selectLevaCaldo.addEventListener('change', () => { controlarOpcoesCaldos(); });
     }
 
-    // FORMULÁRIO DE ENVIO
+    // FORMULÁRIO DE ENVIO PARA O BANCO
     const formulario = document.getElementById('form-inscricao');
     if (formulario) {
         formulario.addEventListener('submit', async (e) => {
@@ -204,7 +206,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 nome: document.getElementById('nome').value,
                 tipo_grupo: tipoGrupo,
-                qtd_conjuge: qtdConjuges, // CORREÇÃO: Coluna certa no singular
+                qtd_conjuge: qtdConjuges, // Enviando para a coluna certa no singular (qtd_conjuge)
                 qtd_amigos: qtdAmigos,
                 criancas: document.getElementById('criancas').value,
                 leva_caldo: levaCaldo,
