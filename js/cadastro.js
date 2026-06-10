@@ -26,7 +26,7 @@ function ajustarFluxoGrupo() {
         blocoAcompanhantes.classList.add('hidden');
         
         // Zera os valores para o cálculo correto do PIX no singular
-        if(document.getElementById('qtd_conjuge')) document.getElementById('qtd_conjuge').value = 0;
+        if(document.getElementById('qtd_conjuges')) document.getElementById('qtd_conjuges').value = 0;
         if(document.getElementById('qtd_amigos')) document.getElementById('qtd_amigos').value = 0;
         if(document.getElementById('criancas')) document.getElementById('criancas').value = '';
     } else {
@@ -68,7 +68,7 @@ async function controlarOpcoesCaldos() {
     grupoCaldo.classList.remove('hidden');
     selectCaldo.innerHTML = '<option value="">Buscando caldos disponíveis...</option>';
 
-    // CORREÇÃO CRÍTICA: Buscando 'qtd_conjuge' no singular para não quebrar a árvore do cache do Supabase
+    // Busca os dados no Supabase usando 'qtd_conjuge' no singular
     const { data: inscritos, error } = await _supabase
         .from('cadastro_arraia')
         .select('sabor_prato, qtd_conjuge, qtd_amigos');
@@ -80,58 +80,51 @@ async function controlarOpcoesCaldos() {
     }
 
     let mapaCaldos = {};
-    selectCaldo.innerHTML = '<option value="">Selecione um caldo...</option>';
-    let temCaldoDisponivel = false;
+    CALDOS_OFICIAIS.forEach(c => mapaCaldos[c] = 0);
 
-    CALDOS_OFICIAIS.forEach(caldo => {
-        const vagasOcupadas = mapaCaldos[caldo];
-        const restoVagas = 3 - vagasOcupadas;
-
-        if (restoVagas >= tamanhoGrupoAtual) {
-            // Caso ideal: o grupo cabe perfeitamente nas vagas restantes
-            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${vagasOcupadas}/3 ocupados)</option>`;
-            temCaldoDisponivel = true;
-        } else {
-            // Regra Flexível: O grupo é maior que o limite, mas o sistema PERMITE selecionar
-            // Avisa o usuário no texto do select, mas deixa a opção aberta para não travar a família
-            const textoAviso = restoVagas > 0 ? `restam ${restoVagas} vagas` : "limite atingido";
-            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} ⚠️ (${vagasOcupadas}/3 - Seu grupo excede o limite)</option>`;
-            temCaldoDisponivel = true;
-        }
-    });
-
-    // Como deixamos a regra flexível, este bloco de erro geral não vai mais travar o app
-    if (!temCaldoDisponivel && selectCaldo.options.length <= 1) {
-        selectCaldo.innerHTML = '<option value="">⚠️ Busque a coordenação para ajustar as vagas dos caldos.</option>';
+    if (inscritos && Array.isArray(inscritos) && inscritos.length > 0) {
+        inscritos.forEach(item => {
+            if (item.sabor_prato && mapaCaldos[item.sabor_prato] !== undefined) {
+                const conjuge = Number(item.qtd_conjuge) || 0;
+                const amigos = Number(item.qtd_amigos) || 0;
+                mapaCaldos[item.sabor_prato] += (1 + conjuge + amigos);
+            }
+        });
     }
-}
 
-    // Lê os inputs do HTML da tela atual (os IDs do seu index.html permanecem os mesmos)
-    const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuge')?.value) || 0;
+    // Pega o tamanho do grupo preenchido na tela no momento
+    const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuges')?.value) || 0;
     const qtdAmigosAtuais = Number(document.getElementById('qtd_amigos')?.value) || 0;
     const tamanhoGrupoAtual = 1 + qtdConjugesAtuais + qtdAmigosAtuais;
 
     selectCaldo.innerHTML = '<option value="">Selecione um caldo...</option>';
     let temCaldoDisponivel = false;
 
+    // Renderização inteligente e flexível dos caldos (Sem travar grupos grandes)
     CALDOS_OFICIAIS.forEach(caldo => {
         const vagasOcupadas = mapaCaldos[caldo];
-        if ((vagasOcupadas + tamanhoGrupoAtual) <= 3) {
+        const restoVagas = 3 - vagasOcupadas;
+
+        if (restoVagas >= tamanhoGrupoAtual) {
             selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${vagasOcupadas}/3 ocupados)</option>`;
+            temCaldoDisponivel = true;
+        } else {
+            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} ⚠️ (${vagasOcupadas}/3 - Grupo excede o limite)</option>`;
             temCaldoDisponivel = true;
         }
     });
 
-    if (!temCaldoDisponivel) {
-        selectCaldo.innerHTML = '<option value="">⚠️ Todos os caldos atingiram o limite de 3 pessoas!</option>';
+    if (!temCaldoDisponivel && selectCaldo.options.length <= 1) {
+        selectCaldo.innerHTML = '<option value="">⚠️ Busque a coordenação para ajustar as vagas dos caldos.</option>';
     }
+}
 
 // Regra de Negócio: Calcula o valor total do PIX baseado na estrutura do grupo familiar
 function calcularPix() {
     const patrocinadorCheckbox = document.getElementById('patrocinador');
     const labelPix = document.getElementById('label-pix');
     
-    const qtdConjuges = Number(document.getElementById('qtd_conjuge')?.value) || 0;
+    const qtdConjuges = Number(document.getElementById('qtd_conjuges')?.value) || 0;
     const qtdAmigos = Number(document.getElementById('qtd_amigos')?.value) || 0;
 
     if (!labelPix) return 0;
@@ -152,7 +145,7 @@ window.addEventListener('DOMContentLoaded', () => {
     calcularPix();
 
     // DISPARADORES REATIVOS DE INPUT DO LAYOUT APP
-    const campoConjuges = document.getElementById('qtd_conjuge');
+    const campoConjuges = document.getElementById('qtd_conjuges');
     const campoAmigos = document.getElementById('qtd_amigos');
     const selectTipoGrupo = document.getElementById('tipo_grupo');
     const selectLevaCaldo = document.getElementById('leva_caldo');
@@ -183,7 +176,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const tipoGrupo = document.getElementById('tipo_grupo').value;
             const levaCaldo = document.getElementById('leva_caldo').value;
             const saborCaldo = document.getElementById('sabor_caldo').value;
-            const qtdConjuges = Number(document.getElementById('qtd_conjuge').value) || 0;
+            const qtdConjuges = Number(document.getElementById('qtd_conjuges').value) || 0;
             const qtdAmigos = Number(document.getElementById('qtd_amigos').value) || 0;
 
             if (levaCaldo === 'Sim' && !saborCaldo) {
@@ -218,7 +211,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 nome: document.getElementById('nome').value,
                 tipo_grupo: tipoGrupo,
-                qtd_conjuge: qtdConjuges, // Enviando para a coluna certa no singular (qtd_conjuge)
+                qtd_conjuge: qtdConjuges, // Coluna certa no singular para o Supabase
                 qtd_amigos: qtdAmigos,
                 criancas: document.getElementById('criancas').value,
                 leva_caldo: levaCaldo,
