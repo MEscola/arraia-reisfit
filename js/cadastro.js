@@ -11,6 +11,23 @@ const CALDOS_OFICIAIS = [
     "Caldo de abóbora"
 ];
 
+// Interface: Exibe ou esconde o input de valor da doação
+function controlarFluxoPatrocinio() {
+    const checkbox = document.getElementById('patrocinador');
+    const grupoValor = document.getElementById('grupo-valor-doacao');
+    const inputValor = document.getElementById('valor_doacao');
+
+    if (!checkbox || !grupoValor) return;
+
+    if (checkbox.checked) {
+        grupoValor.classList.remove('hidden');
+    } else {
+        grupoValor.classList.add('hidden');
+        if (inputValor) inputValor.value = ''; // Limpa o valor digitado se desligar
+    }
+    calcularPix();
+}
+
 // Interface: Ajusta se exibe inputs para Solteiro ou Família
 function ajustarFluxoGrupo() {
     const tipoGrupoField = document.getElementById('tipo_grupo');
@@ -26,7 +43,7 @@ function ajustarFluxoGrupo() {
         blocoAcompanhantes.classList.add('hidden');
         
         // Zera os valores para o cálculo correto do PIX no singular
-        if(document.getElementById('qtd_conjuges')) document.getElementById('qtd_conjuges').value = 0;
+        if(document.getElementById('qtd_conjuge')) document.getElementById('qtd_conjuge').value = 0;
         if(document.getElementById('qtd_amigos')) document.getElementById('qtd_amigos').value = 0;
         if(document.getElementById('criancas')) document.getElementById('criancas').value = '';
     } else {
@@ -68,7 +85,6 @@ async function controlarOpcoesCaldos() {
     grupoCaldo.classList.remove('hidden');
     selectCaldo.innerHTML = '<option value="">Buscando caldos disponíveis...</option>';
 
-    // Busca os dados no Supabase usando 'qtd_conjuge' no singular
     const { data: inscritos, error } = await _supabase
         .from('cadastro_arraia')
         .select('sabor_prato, qtd_conjuge, qtd_amigos');
@@ -92,15 +108,13 @@ async function controlarOpcoesCaldos() {
         });
     }
 
-    // Pega o tamanho do grupo preenchido na tela no momento
-    const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuges')?.value) || 0;
+    const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuge')?.value) || 0;
     const qtdAmigosAtuais = Number(document.getElementById('qtd_amigos')?.value) || 0;
     const tamanhoGrupoAtual = 1 + qtdConjugesAtuais + qtdAmigosAtuais;
 
     selectCaldo.innerHTML = '<option value="">Selecione um caldo...</option>';
     let temCaldoDisponivel = false;
 
-    // Renderização inteligente e flexível dos caldos (Sem travar grupos grandes)
     CALDOS_OFICIAIS.forEach(caldo => {
         const vagasOcupadas = mapaCaldos[caldo];
         const restoVagas = 3 - vagasOcupadas;
@@ -119,20 +133,41 @@ async function controlarOpcoesCaldos() {
     }
 }
 
-// Regra de Negócio: Calcula o valor total do PIX baseado na estrutura do grupo familiar
+// Regra de Negócio Dinâmica: Aplica isenções escalonadas baseadas na doação do patrocinador
 function calcularPix() {
+    //patrocinador no index está como "Sou Box Friendly", mas a lógica de cálculo continua a mesma, apenas o nome do checkbox mudou para refletir a nova abordagem de patrocínio coletivo. O ID do checkbox permanece 'patrocinador' para manter a consistência com o código existente.
     const patrocinadorCheckbox = document.getElementById('patrocinador');
+    const valorDoacaoField = document.getElementById('valor_doacao');
     const labelPix = document.getElementById('label-pix');
     
-    const qtdConjuges = Number(document.getElementById('qtd_conjuges')?.value) || 0;
+    const qtdConjuges = Number(document.getElementById('qtd_conjuge')?.value) || 0;
     const qtdAmigos = Number(document.getElementById('qtd_amigos')?.value) || 0;
 
     if (!labelPix) return 0;
 
-    const isPatrocinador = patrocinadorCheckbox ? patrocinadorCheckbox.checked : false;
-    const entradaTitular = isPatrocinador ? 0 : 15;
-    
-    const total = entradaTitular + (qtdConjuges * 15) + (qtdAmigos * 20);
+    let valorDoacao = 0;
+    let entradaTitular = 15;
+    let taxaConjuge = 15;
+    let taxaAmigo = 20;
+
+    // Se o switch estiver ligado, lê o valor da doação digitado
+    if (patrocinadorCheckbox && patrocinadorCheckbox.checked) {
+        valorDoacao = Number(valorDoacaoField?.value) || 0;
+
+        // Regra de escalonamento de benefícios
+        if (valorDoacao >= 100) {
+            // A partir de R$ 100: Isenção TOTAL (família inteira zera as taxas de entrada)
+            entradaTitular = 0;
+            taxaConjuge = 0;
+            taxaAmigo = 0;
+        } else if (valorDoacao >= 50) {
+            // Entre R$ 50 e R$ 99: Isenção individual apenas do titular
+            entradaTitular = 0;
+        }
+    }
+
+    // Soma final: A doação em dinheiro + taxas residuais do grupo
+    const total = valorDoacao + entradaTitular + (qtdConjuges * taxaConjuge) + (qtdAmigos * taxaAmigo);
     
     labelPix.innerText = `R$ ${total},00`;
     return total;
@@ -140,12 +175,11 @@ function calcularPix() {
 
 // Inicializador Único de Ciclo de Vida: Executa TUDO com proteção após o DOM estar desenhado na tela
 window.addEventListener('DOMContentLoaded', () => {
-    // Alinhamento e cálculo inicial do app
     ajustarFluxoGrupo();
     calcularPix();
 
     // DISPARADORES REATIVOS DE INPUT DO LAYOUT APP
-    const campoConjuges = document.getElementById('qtd_conjuges');
+    const campoConjuges = document.getElementById('qtd_conjuge');
     const campoAmigos = document.getElementById('qtd_amigos');
     const selectTipoGrupo = document.getElementById('tipo_grupo');
     const selectLevaCaldo = document.getElementById('leva_caldo');
@@ -176,7 +210,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const tipoGrupo = document.getElementById('tipo_grupo').value;
             const levaCaldo = document.getElementById('leva_caldo').value;
             const saborCaldo = document.getElementById('sabor_caldo').value;
-            const qtdConjuges = Number(document.getElementById('qtd_conjuges').value) || 0;
+            const qtdConjuges = Number(document.getElementById('qtd_conjuge').value) || 0;
             const qtdAmigos = Number(document.getElementById('qtd_amigos').value) || 0;
 
             if (levaCaldo === 'Sim' && !saborCaldo) {
@@ -211,7 +245,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 nome: document.getElementById('nome').value,
                 tipo_grupo: tipoGrupo,
-                qtd_conjuge: qtdConjuges, // Coluna certa no singular para o Supabase
+                qtd_conjuge: qtdConjuges,
                 qtd_amigos: qtdAmigos,
                 criancas: document.getElementById('criancas').value,
                 leva_caldo: levaCaldo,

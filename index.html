@@ -21,23 +21,30 @@
         <section id="tela-cadastro">
             <form id="form-inscricao">
 
-                <!-- CARD 1: Dados do Aluno -->
                 <div class="form-card">
                     <div class="form-group">
                         <label for="nome">Qual o seu nome? (Titular)</label>
                         <input type="text" id="nome" required placeholder="Digite seu nome completo">
                     </div>
 
-                    <!-- Componente Switch Discreto para o Patrocinador -->
                     <div class="sponsor-box">
                         <div class="sponsor-info">
-                            <strong>Sou Patrocinador</strong>
-                            <p>Vou ajudar com os brindes do bingo e ganhar isenção na minha inscrição.</p>
+                            <strong>Sou Box Friendly 🤝</strong>
+                            <p>Vou ajudar com os brindes do bingo e ganhar benefícios de isenção.</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="patrocinador" onchange="calcularPix()">
+                            <input type="checkbox" id="patrocinador" onchange="controlarFluxoPatrocinio()">
                             <span class="slider"></span>
                         </label>
+                    </div>
+
+                    <div id="grupo-valor-doacao" class="form-group hidden" style="margin-top: -10px; margin-bottom: 20px; border-left: 3px solid var(--accent-color); padding-left: 15px;">
+                        <label for="valor_doacao">Qual o valor da doação? (R$)</label>
+                        <input type="number" id="valor_doacao" min="0" placeholder="Ex: 50 ou 100" oninput="calcularPix()">
+                        <small style="color: var(--text-secondary); display: block; margin-top: 5px; font-size: 12px; line-height: 1.3;">
+                            💡 A partir de <strong>R$ 50</strong> isenta o Titular.<br>
+                            💡 A partir de <strong>R$ 100</strong> isenta a Família inteira!
+                        </small>
                     </div>
 
                     <div class="form-group">
@@ -49,7 +56,6 @@
                     </div>
                 </div>
 
-                <!-- CARD 2: Bloco de Acompanhantes (Escondido por padrão) -->
                 <div id="campos-acompanhantes" class="form-card hidden">
                     <div class="form-group">
                         <label for="qtd_conjuge">Cônjuges/Filhos > 13 anos (R$ 15,00 cada)</label>
@@ -61,12 +67,10 @@
                     </div>
                     <div class="form-group">
                         <label for="criancas">Crianças < 13 anos (Não pagam)</label>
-                                <textarea id="criancas" rows="2"
-                                    placeholder="Liste nomes e idades para controle..."></textarea>
+                        <textarea id="criancas" rows="2" placeholder="Liste nomes e idades para controle..."></textarea>
                     </div>
                 </div>
 
-                <!-- CARD 3: Comidinhas -->
                 <div class="form-card">
                     <div class="form-group">
                         <label for="leva_caldo">Você vai levar algum caldo?</label>
@@ -79,8 +83,7 @@
                     <div id="grupo-sabores-caldo" class="form-group hidden">
                         <label for="sabor_caldo">Escolha o sabor do caldo:</label>
                         <select id="sabor_caldo">
-                            <!-- Injetado dinamicamente via JS -->
-                        </select>
+                            </select>
                     </div>
 
                     <div id="secao-pratos-dinamica">
@@ -110,7 +113,6 @@
                     </div>
                 </div>
 
-                <!-- Painel de Fechamento do Aplicativo -->
                 <div class="pix-box">
                     <p>Total do investimento via PIX</p>
                     <div class="pix-value" id="label-pix">R$ 15,00</div>
@@ -122,7 +124,6 @@
         </section>
     </div>
 
-    <!-- Barra Inferior Mobile -->
     <nav>
         <div class="nav-bar">
             <a href="index.html" class="nav-item active">
