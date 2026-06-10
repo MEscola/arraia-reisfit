@@ -80,18 +80,31 @@ async function controlarOpcoesCaldos() {
     }
 
     let mapaCaldos = {};
-    CALDOS_OFICIAIS.forEach(c => mapaCaldos[c] = 0);
+    selectCaldo.innerHTML = '<option value="">Selecione um caldo...</option>';
+    let temCaldoDisponivel = false;
 
-    if (inscritos && Array.isArray(inscritos)) {
-        inscritos.forEach(item => {
-            if (item.sabor_prato && mapaCaldos[item.sabor_prato] !== undefined) {
-                // CORREÇÃO: Lendo 'item.qtd_conjuge' no singular vindo do payload do Supabase
-                const conjuge = Number(item.qtd_conjuge) || 0; 
-                const amigos = Number(item.qtd_amigos) || 0;
-                mapaCaldos[item.sabor_prato] += (1 + conjuge + amigos);
-            }
-        });
+    CALDOS_OFICIAIS.forEach(caldo => {
+        const vagasOcupadas = mapaCaldos[caldo];
+        const restoVagas = 3 - vagasOcupadas;
+
+        if (restoVagas >= tamanhoGrupoAtual) {
+            // Caso ideal: o grupo cabe perfeitamente nas vagas restantes
+            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${vagasOcupadas}/3 ocupados)</option>`;
+            temCaldoDisponivel = true;
+        } else {
+            // Regra Flexível: O grupo é maior que o limite, mas o sistema PERMITE selecionar
+            // Avisa o usuário no texto do select, mas deixa a opção aberta para não travar a família
+            const textoAviso = restoVagas > 0 ? `restam ${restoVagas} vagas` : "limite atingido";
+            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} ⚠️ (${vagasOcupadas}/3 - Seu grupo excede o limite)</option>`;
+            temCaldoDisponivel = true;
+        }
+    });
+
+    // Como deixamos a regra flexível, este bloco de erro geral não vai mais travar o app
+    if (!temCaldoDisponivel && selectCaldo.options.length <= 1) {
+        selectCaldo.innerHTML = '<option value="">⚠️ Busque a coordenação para ajustar as vagas dos caldos.</option>';
     }
+}
 
     // Lê os inputs do HTML da tela atual (os IDs do seu index.html permanecem os mesmos)
     const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuge')?.value) || 0;
