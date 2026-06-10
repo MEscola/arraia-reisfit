@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,75 +8,112 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
     <header>
-        <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600" alt="Banner Arraiá">
+        <img src="/assets/images/banner.png" alt="Banner Arraiá">
     </header>
 
     <div class="container">
-        <section id="tela-cadastro">
-            <form id="form-inscricao">
-                <div class="form-group">
-                    <label for="nome">Nome do Aluno (Titular)</label>
-                    <input type="text" id="nome" required placeholder="Digite seu nome completo">
-                </div>
-                <div class="form-group">
-                    <label>Você é Patrocinador do Evento?</label>
-                    <select id="patrocinador" onchange="calcularPix()">
-                        <option value="nao">Não</option>
-                        <option value="sim">Sim (Entrada Titular Isenta)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="qtd_conjuges">Quantidade de Cônjuges/Filhos (R$ 15,00 cada)</label>
-                    <input type="number" id="qtd_conjuges" min="0" value="0" oninput="calcularPix()">
-                </div>
-                <div class="form-group">
-                    <label for="qtd_amigos">Quantidade de Amigos/Parentes (R$ 20,00 cada)</label>
-                    <input type="number" id="qtd_amigos" min="0" value="0" oninput="calcularPix()">
-                </div>
-                <div class="form-group">
-                    <label for="criancas">Crianças menores de 13 anos? (Nome/Idade para controle)</label>
-                    <textarea id="criancas" rows="2" placeholder="Se houver, liste aqui..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Vai participar do rodízio de caldos?</label>
-                    <select id="leva_caldo">
-                        <option value="Não">Não</option>
-                        <option value="Sim">Sim, quero incluir meu grupo no caldo</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="categoria_prato">O que vai trazer para a mesa coletiva?</label>
-                    <select id="categoria_prato" onchange="controlarCamposPrato()" required>
-                        <option value="">Selecione...</option>
-                        <option value="Doce">Prato Doce 🍫</option>
-                        <option value="Salgado">Prato Salgado 🥐</option>
-                        <option value="Bebida">Bebida 🥤</option>
-                    </select>
-                </div>
-                <div id="grupo-sabor" class="form-group hidden">
-                    <label for="sabor_prato">Especifique o prato/bebida que vai trazer:</label>
-                    <input type="text" id="sabor_prato" placeholder="Ex: Bolo de milho, Coxinha, Engradado de refri">
-                </div>
+        <!-- Código Corrigido para o seu index.html -->
+<section id="tela-cadastro">
+    <form id="form-inscricao">
+        <div class="form-group">
+            <label for="nome">Nome do Aluno (Titular)</label>
+            <input type="text" id="nome" required placeholder="Digite seu nome completo">
+        </div>
+        
+        <div class="form-group">
+            <label for="patrocinador">Você é Patrocinador do Evento?</label>
+            <select id="patrocinador" onchange="calcularPix()">
+                <option value="nao">Não</option>
+                <option value="sim">Sim (Entrada Titular Isenta)</option>
+            </select>
+        </div>
 
-                <div class="pix-box">
-                    <p>Total do investimento via PIX:</p>
-                    <div class="pix-value" id="label-pix">R$ 15,00</div>
-                    <small style="color: #aaa; display:block; margin-top:5px;">Chave PIX: recepcao@reisfit.com.br</small>
+        <div class="form-group">
+            <label for="tipo_grupo">Você vai sozinho ou com a família?</label>
+            <select id="tipo_grupo" onchange="ajustarFluxoGrupo()" required>
+                <option value="Solteiro">Vou Sozinho (1 pessoa)</option>
+                <option value="Casal/Família">Vou em Casal / Família (2 ou mais pessoas)</option>
+            </select>
+        </div>
+
+        <!-- CAMPOS ESSENCIAIS PARA A CONTAGEM DE PAGANTES ADICIONADOS AQUI -->
+        <div class="form-group">
+            <label for="qtd_conjuges">Quantidade de Cônjuges/Filhos Maiores de 13 anos (R$ 15,00 cada)</label>
+            <input type="number" id="qtd_conjuges" min="0" value="0" oninput="calcularPix()">
+        </div>
+
+        <div class="form-group">
+            <label for="qtd_amigos">Quantidade de Amigos/Visitantes (R$ 20,00 cada)</label>
+            <input type="number" id="qtd_amigos" min="0" value="0" oninput="calcularPix()">
+        </div>
+
+        <div class="form-group">
+            <label for="criancas">Crianças menores de 13 anos? (Nome/Idade — Não pagam)</label>
+            <textarea id="criancas" rows="2" placeholder="Se houver, liste aqui para controle do Box..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="leva_caldo">Você vai participar do rodízio de caldos?</label>
+            <select id="leva_caldo" onchange="controlarOpcoesCaldos()">
+                <option value="Não">Não</option>
+                <option value="Sim">Sim</option>
+            </select>
+        </div>
+
+        <div id="grupo-sabores-caldo" class="form-group hidden">
+            <label for="sabor_caldo">Escolha o sabor do caldo disponível:</label>
+            <select id="sabor_caldo">
+                <!-- Injetado dinamicamente via JS -->
+            </select>
+        </div>
+
+        <div id="secao-pratos-dinamica">
+            <div id="fluxo-solteiro" class="form-group">
+                <label for="prato_solteiro">O que vai trazer para a mesa coletiva?</label>
+                <select id="prato_solteiro" onchange="controlarSaborSolteiro()">
+                    <option value="">Selecione...</option>
+                    <option value="Doce">Prato Doce 🍫</option>
+                    <option value="Salgado">Prato Salgado 🥐</option>
+                </select>
+                <div id="grupo-sabor-solteiro" class="form-group hidden" style="margin-top:10px;">
+                    <label for="sabor_prato_solteiro">Especifique o prato que vai trazer:</label>
+                    <input type="text" id="sabor_prato_solteiro" placeholder="Ex: Bolo de milho ou Coxinha">
                 </div>
-                
-                <button type="submit" id="btn-enviar" class="btn btn-primary" style="margin-top: 15px;">Confirmar Minha Inscrição</button>
-            </form>
-        </section>
+            </div>
+
+            <div id="fluxo-familia" class="hidden">
+                <div class="form-group">
+                    <label for="sabor_doce_familia">Especifique o seu Prato Doce 🍫 (Obrigatório):</label>
+                    <input type="text" id="sabor_doce_familia" placeholder="Ex: Bolo de Fubá, Canjica Doce">
+                </div>
+                <div class="form-group">
+                    <label for="sabor_salgado_familia">Especifique o seu Prato Salgado 🥐 (Obrigatório):</label>
+                    <input type="text" id="sabor_salgado_familia" placeholder="Ex: Empadão, Cachorro Quente">
+                </div>
+            </div>
+        </div>
+
+        <div class="pix-box">
+            <p>Total do investimento via PIX:</p>
+            <div class="pix-value" id="label-pix">R$ 15,00</div>
+            <small style="color: #aaa; display:block; margin-top:5px;">Chave PIX: recepcao@reisfit.com.br</small>
+        </div>
+
+        <button type="submit" id="btn-enviar" class="btn btn-primary" style="margin-top: 15px;">Confirmar Meu Cadastro</button>
+    </form>
+</section>
     </div>
 
     <nav>
         <div class="nav-bar">
             <a href="index.html" class="nav-item active" style="text-decoration: none;">📝 Inscrição</a>
             <a href="lista.html" class="nav-item" style="text-decoration: none;">🍿 Espiar Mesa</a>
-            <a href="#" class="nav-item" style="text-decoration: none;" onclick="verificarAcessoAdmRedirecionamento()">🔑 Caixa ADM</a>
+            <a href="#" class="nav-item" style="text-decoration: none;"
+                onclick="verificarAcessoAdmRedirecionamento()">🔑 Caixa ADM</a>
         </div>
     </nav>
 
@@ -93,4 +131,5 @@
         }
     </script>
 </body>
+
 </html>

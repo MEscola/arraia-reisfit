@@ -23,7 +23,13 @@
         <div id="bloco-seguro" class="conteudo-restrito">
             <section id="tela-adm">
                 <h2 style="color: #FFC107;">Controle Financeiro ADM</h2>
-                <p id="total-caixa" style="margin-top: 5px; color: #4CAF50; font-weight: bold;">Total Previsto em Caixa: R$ 0,00</p>
+                
+                <!-- Painel com os dois contadores atualizados lado a lado -->
+                <div style="margin-top: 15px; margin-bottom: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
+                    <p id="total-caixa" style="color: #4CAF50; font-weight: bold; font-size: 16px;">Total Previsto em Caixa: R$ 0,00</p>
+                    <p id="total-pagantes" style="color: #00BCD4; font-weight: bold; font-size: 16px;">Total de Pagantes: 0 pessoas</p>
+                </div>
+
                 <table>
                     <thead>
                         <tr>
@@ -34,7 +40,8 @@
                         </tr>
                     </thead>
                     <tbody id="tabela-adm-corpo">
-                        </tbody>
+                        <!-- Injetado via JS dinamicamente -->
+                    </tbody>
                 </table>
             </section>
         </div>
@@ -48,10 +55,11 @@
         </div>
     </nav>
 
+    <!-- Importa apenas a conexão do Supabase externa -->
     <script src="js/supabase.js"></script>
-    <script src="js/adm.js"></script>
+    
     <script>
-        // Segurança de barreira caso digitem a URL direto no navegador
+        // Trava de segurança: pede a senha imediatamente ao carregar a página física
         window.onload = function() {
             const senha = prompt("Acesso Restrito. Digite a senha do Financeiro:");
             if (senha === "ReisFit2026") {
@@ -59,9 +67,93 @@
                 carregarPainelADM();
             } else {
                 alert("Senha inválida!");
-                window.location.href = "index.html"; // Chuta o usuário para a página inicial
+                window.location.href = "index.html"; // Redireciona de volta para a inscrição
             }
         };
+
+        // Carrega o balancete completo com somatório de caixa e público pagante real
+        async function carregarPainelADM() {
+            const corpo = document.getElementById('tabela-adm-corpo');
+            corpo.innerHTML = "<tr><td colspan='4'>Carregando fluxo de caixa...</td></tr>";
+
+            const { data, error } = await _supabase
+                .from('inscricoes_arraia')
+                .select('id, nome, total_pix, status_pix, qtd_conjuges, qtd_amigos, categoria_prato')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                corpo.innerHTML = "<tr><td colspan='4'>Erro crítico ao ler banco financeiro.</td></tr>";
+                return;
+            }
+
+            let faturamentoTotal = 0;
+            let totalPagantesGeral = 0;
+            corpo.innerHTML = '';
+            
+            // Processa os dados injetando linhas na tabela e acumulando os totais
+            data.forEach(aluno => {
+                // 1. Acumula o valor financeiro
+                faturamentoTotal += Number(aluno.total_pix) || 0;
+
+                // 2. Aplica a Regra de Negócio para contagem de PAGANTES reais na linha:
+                let pagantesDestaInscricao = 0;
+
+                if (Number(aluno.total_pix) > 0) {
+                    // Descobre o custo total gerado pelos acompanhantes cadastrados
+                    const custoAcompanhantes = ((aluno.qtd_conjuges || 0) * 15) + ((aluno.qtd_amigos || 0) * 20);
+                    
+                    // Se o total_pix pago for maior que o custo dos acompanhantes, o titular não é patrocinador e entra na contagem de pagantes
+                    if (Number(aluno.total_pix) > custoAcompanhantes) {
+                        pagantesDestaInscricao += 1; 
+                    }
+                    
+                    // Soma os cônjuges e amigos maiores de 13 anos (as crianças já não geram valor no total_pix)
+                    pagantesDestaInscricao += (aluno.qtd_conjuges || 0);
+                    pagantesDestaInscricao += (aluno.qtd_amigos || 0);
+                }
+
+                // Acumula no grande total do Box
+                totalPagantesGeral += pagantesDestaInscricao;
+
+                // 3. Renderização da linha administrativa
+                const totalPessoasGrupo = 1 + (aluno.qtd_conjuges || 0) + (aluno.qtd_amigos || 0);
+                
+                let acao = aluno.status_pix === 'Pendente' 
+                    ? `<button class="btn btn-primary" style="padding:6px 12px; font-size:12px; width:auto;" onclick="confirmarBaixaPix(${aluno.id})">Baixa PIX</button>` 
+                    : `<span class="badge-pago">✅ Pago</span>`;
+
+                corpo.innerHTML += `
+                    <tr>
+                        <td>
+                            <strong>${aluno.nome}</strong><br>
+                            <small style="color:#aaa;">Total Grupo: ${totalPessoasGrupo}p | Pagantes: ${pagantesDestaInscricao}p</small>
+                        </td>
+                        <td>R$ ${aluno.total_pix},00</td>
+                        <td><small>${aluno.status_pix}</small></td>
+                        <td>${acao}</td>
+                    </tr>
+                `;
+            });
+
+            // 4. Atualiza os painéis informativos superiores do ADM
+            document.getElementById('total-caixa').innerText = `Total Previsto em Caixa: R$ ${faturamentoTotal},00`;
+            document.getElementById('total-pagantes').innerText = `Total de Pagantes: ${totalPagantesGeral} pessoas`;
+        }
+
+        // Executa o comando UPDATE diretamente na linha selecionada via chave primária (ID)
+        async function confirmarBaixaPix(idInscricao) {
+            const { error } = await _supabase
+                .from('inscricoes_arraia')
+                .update({ status_pix: 'Pago' })
+                .eq('id', idInscricao);
+
+            if (error) {
+                alert("Falha ao registrar liquidação: " + error.message);
+            } else {
+                // Recarga automática para atualização reativa do faturamento e pagantes na tela
+                carregarPainelADM();
+            }
+        }
     </script>
 </body>
 </html>
