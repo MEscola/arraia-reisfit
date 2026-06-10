@@ -125,88 +125,98 @@ function calcularPix() {
     // Regra matemática estabelecida: Titular (0 ou 15) + Cônjuges (15 cada) + Amigos (20 cada)
     const total = entradaTitular + (qtdConjuges * 15) + (qtdAmigos * 20);
     
-    // Atualiza o container visual em tempo real no dispositivo mobile
+    // Updates the visual container in real time
     labelPix.innerText = `R$ ${total},00`;
     return total;
 }
 
-// Intercepta e processa a submissão do formulário de inscrições
-document.getElementById('form-inscricao').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const btn = document.getElementById('btn-enviar');
-    btn.disabled = true;
-    btn.innerText = "Processando inscrição, aguarde...";
-
-    const tipoGrupo = document.getElementById('tipo_grupo').value;
-    const levaCaldo = document.getElementById('leva_caldo').value;
-    const saborCaldo = document.getElementById('sabor_caldo').value;
-    const qtdConjuges = Number(document.getElementById('qtd_conjuges').value) || 0;
-    const qtdAmigos = Number(document.getElementById('qtd_amigos').value) || 0;
-    const tamanhoGrupoAtual = 1 + qtdConjuges + qtdAmigos;
-
-    if (levaCaldo === 'Sim' && !saborCaldo) {
-        alert("Por favor, selecione um sabor de caldo disponível!");
-        btn.disabled = false;
-        btn.innerText = "Confirmar Meu Cadastro";
-        return;
-    }
-
-    let categoriaFinal = "";
-    let saborFinal = "";
-
-    if (tipoGrupo === "Solteiro") {
-        categoriaFinal = document.getElementById('prato_solteiro').value;
-        saborFinal = document.getElementById('sabor_prato_solteiro').value || "Não especificado";
-        
-        if (!categoriaFinal) {
-            alert("Por favor, selecione se trará um prato Doce ou Salgado!");
-            btn.disabled = false;
-            btn.innerText = "Confirmar Meu Cadastro";
-            return;
-        }
-    } else {
-        // Regra Família: Traz os dois pratos de forma compulsória
-        const doce = document.getElementById('sabor_doce_familia').value || "Doce não especificado";
-        const salgado = document.getElementById('sabor_salgado_familia').value || "Salgado não especificado";
-        
-        categoriaFinal = "Doce e Salgado 🍫🥐";
-        saborFinal = `Doce: ${doce} | Salgado: ${salgado}`;
-    }
-
-    const totalPix = calcularPix();
-    const payload = {
-        nome: document.getElementById('nome').value,
-        tipo_grupo: tipoGrupo,
-        qtd_conjuges: qtdConjuges,
-        qtd_amigos: qtdAmigos,
-        criancas: document.getElementById('criancas').value,
-        leva_caldo: levaCaldo,
-        categoria_prato: levaCaldo === 'Sim' ? `Caldo (${saborCaldo}) + ${categoriaFinal}` : categoriaFinal,
-        sabor_prato: levaCaldo === 'Sim' ? saborCaldo : saborFinal, 
-        total_pix: totalPix,
-        status_pix: 'Pendente'
-    };
-
-    const { error } = await _supabase.from('inscricoes_arraia').insert([payload]);
-
-    if (error) {
-        alert("Erro ao processar inscrição: " + error.message);
-        btn.disabled = false;
-        btn.innerText = "Confirmar Meu Cadastro";
-    } else {
-        alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: R$ ${totalPix},00\n\nAcompanhe a evolução da mesa coletiva na próxima tela!`);
-        document.getElementById('form-inscricao').reset();
-        window.location.href = "lista.html"; 
-    }
-});
-
-// DISPARADORES REATIVOS (Gatilhos de escuta)
-document.getElementById('qtd_conjuges').addEventListener('input', () => { calcularPix(); controlarOpcoesCaldos(); });
-document.getElementById('qtd_amigos').addEventListener('input', () => { calcularPix(); controlarOpcoesCaldos(); });
-
-// Inicializador de Ciclo de Vida: Força o alinhamento visual e os cálculos assim que o DOM estiver pronto
+// Inicializador Único de Ciclo de Vida: Executa TUDO com proteção após o DOM estar desenhado na tela
 window.addEventListener('DOMContentLoaded', () => {
+    // 1. Alinha a interface inicial e calcula o primeiro valor (R$ 15,00)
     ajustarFluxoGrupo();
     calcularPix();
+
+    // 2. Protege as escutas reativas de input contra erros de carregamento 'null'
+    const campoConjuges = document.getElementById('qtd_conjuges');
+    const campoAmigos = document.getElementById('qtd_amigos');
+
+    if (campoConjuges) {
+        campoConjuges.addEventListener('input', () => { calcularPix(); controlarOpcoesCaldos(); });
+    }
+    if (campoAmigos) {
+        campoAmigos.addEventListener('input', () => { calcularPix(); controlarOpcoesCaldos(); });
+    }
+
+    // 3. Processa e intercepta a submissão do formulário com segurança
+    const formulario = document.getElementById('form-inscricao');
+    if (formulario) {
+        formulario.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn-enviar');
+            btn.disabled = true;
+            btn.innerText = "Processando inscrição, aguarde...";
+
+            const tipoGrupo = document.getElementById('tipo_grupo').value;
+            const levaCaldo = document.getElementById('leva_caldo').value;
+            const saborCaldo = document.getElementById('sabor_caldo').value;
+            const qtdConjuges = Number(document.getElementById('qtd_conjuges').value) || 0;
+            const qtdAmigos = Number(document.getElementById('qtd_amigos').value) || 0;
+
+            if (levaCaldo === 'Sim' && !saborCaldo) {
+                alert("Por favor, selecione um sabor de caldo disponível!");
+                btn.disabled = false;
+                btn.innerText = "Confirmar Meu Cadastro";
+                return;
+            }
+
+            let categoriaFinal = "";
+            let saborFinal = "";
+
+            if (tipoGrupo === "Solteiro") {
+                categoriaFinal = document.getElementById('prato_solteiro').value;
+                saborFinal = document.getElementById('sabor_prato_solteiro').value || "Não especificado";
+                
+                if (!categoriaFinal) {
+                    alert("Por favor, selecione se trará um prato Doce ou Salgado!");
+                    btn.disabled = false;
+                    btn.innerText = "Confirmar Meu Cadastro";
+                    return;
+                }
+            } else {
+                // Regra Família: Traz os dois pratos de forma compulsória
+                const doce = document.getElementById('sabor_doce_familia').value || "Doce não especificado";
+                const salgado = document.getElementById('sabor_salgado_familia').value || "Salgado não especificado";
+                
+                categoriaFinal = "Doce e Salgado 🍫🥐";
+                saborFinal = `Doce: ${doce} | Salgado: ${salgado}`;
+            }
+
+            const totalPix = calcularPix();
+            const payload = {
+                nome: document.getElementById('nome').value,
+                tipo_grupo: tipoGrupo,
+                qtd_conjuges: qtdConjuges,
+                qtd_amigos: qtdAmigos,
+                criancas: document.getElementById('criancas').value,
+                leva_caldo: levaCaldo,
+                categoria_prato: levaCaldo === 'Sim' ? `Caldo (${saborCaldo}) + ${categoriaFinal}` : categoriaFinal,
+                sabor_prato: levaCaldo === 'Sim' ? saborCaldo : saborFinal, 
+                total_pix: totalPix,
+                status_pix: 'Pendente'
+            };
+
+            const { error } = await _supabase.from('inscricoes_arraia').insert([payload]);
+
+            if (error) {
+                alert("Erro ao processar inscrição: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "Confirmar Meu Cadastro";
+            } else {
+                alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: R$ ${totalPix},00\n\nAcompanhe a evolução da mesa coletiva na próxima tela!`);
+                formulario.reset();
+                window.location.href = "lista.html"; 
+            }
+        });
+    }
 });
