@@ -16,7 +16,7 @@
     </header>
 
     <div class="container">
-        <h1>🤠 Inscrição Arraiá</h1>
+        <h1>🤠 Cadastro</h1>
 
         <section id="tela-cadastro">
             <form id="form-inscricao">
@@ -24,7 +24,7 @@
                 <!-- CARD 1: Dados do Aluno -->
                 <div class="form-card">
                     <div class="form-group">
-                        <label for="nome">Nome do Aluno (Titular)</label>
+                        <label for="nome">Qual o seu nome? (Titular)</label>
                         <input type="text" id="nome" required placeholder="Digite seu nome completo">
                     </div>
 
@@ -66,10 +66,10 @@
                     </div>
                 </div>
 
-                <!-- CARD 3: Alimentação e Mesa Coletiva -->
+                <!-- CARD 3: Comidinhas -->
                 <div class="form-card">
                     <div class="form-group">
-                        <label for="leva_caldo">Participar do rodízio de caldos?</label>
+                        <label for="leva_caldo">Você vai levar algum caldo?</label>
                         <select id="leva_caldo" onchange="controlarOpcoesCaldos()">
                             <option value="Não">Não</option>
                             <option value="Sim">Sim</option>
@@ -85,7 +85,7 @@
 
                     <div id="secao-pratos-dinamica">
                         <div id="fluxo-solteiro" class="form-group">
-                            <label for="prato_solteiro">O que vai trazer para a mesa coletiva?</label>
+                            <label for="prato_solteiro">Qual o prato você vai levar?</label>
                             <select id="prato_solteiro" onchange="controlarSaborSolteiro()">
                                 <option value="">Selecione...</option>
                                 <option value="Doce">Prato Doce 🍫</option>
