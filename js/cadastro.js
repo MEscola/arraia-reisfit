@@ -12,54 +12,65 @@ const CALDOS_OFICIAIS = [
 ];
 
 // Interface: Ajusta se exibe inputs para Solteiro ou Família
+// Substitua a função ajustarFluxoGrupo no seu js/cadastro.js por esta:
 function ajustarFluxoGrupo() {
     const tipoGrupoField = document.getElementById('tipo_grupo');
     const fluxoSolteiro = document.getElementById('fluxo-solteiro');
     const fluxoFamilia = document.getElementById('fluxo-familia');
+    const blocoAcompanhantes = document.getElementById('campos-acompanhantes');
     
-    // Captura as caixas de acompanhantes para poder sumir com elas
-    const campoConjugesGroup = document.getElementById('qtd_conjuges')?.closest('.form-group');
-    const campoAmigosGroup = document.getElementById('qtd_amigos')?.closest('.form-group');
-    const campoCriancasGroup = document.getElementById('criancas')?.closest('.form-group');
-
-    if (!tipoGrupoField || !fluxoSolteiro || !fluxoFamilia) return;
+    if (!tipoGrupoField || !fluxoSolteiro || !fluxoFamilia || !blocoAcompanhantes) return;
 
     if (tipoGrupoField.value === "Solteiro") {
-        // Se for Solteiro, mostra a escolha simples de prato e esconde acompanhantes
+        // Mostra prato do solteiro, esconde pratos de família e o bloco de acompanhantes inteiro
         fluxoSolteiro.classList.remove('hidden');
         fluxoFamilia.classList.add('hidden');
+        blocoAcompanhantes.classList.add('hidden');
         
-        if(campoConjugesGroup) campoConjugesGroup.classList.add('hidden');
-        if(campoAmigosGroup) campoAmigosGroup.classList.add('hidden');
-        if(campoCriancasGroup) campoCriancasGroup.classList.add('hidden');
-
-        // Zera os valores para não somar no PIX por engano
+        // Reseta os valores numéricos para não bugar o cálculo do PIX
         if(document.getElementById('qtd_conjuges')) document.getElementById('qtd_conjuges').value = 0;
         if(document.getElementById('qtd_amigos')) document.getElementById('qtd_amigos').value = 0;
         if(document.getElementById('criancas')) document.getElementById('criancas').value = '';
     } else {
-        // Se for Casal/Família, abre a digitação obrigatória e as caixas de acompanhantes
+        // Se for família, abre as opções obrigatórias e exibe o bloco de acompanhantes
         fluxoSolteiro.classList.add('hidden');
         fluxoFamilia.classList.remove('hidden');
-        
-        if(campoConjugesGroup) campoConjugesGroup.classList.remove('hidden');
-        if(campoAmigosGroup) campoAmigosGroup.classList.remove('hidden');
-        if(campoCriancasGroup) campoCriancasGroup.classList.remove('hidden');
+        blocoAcompanhantes.classList.remove('hidden');
     }
     calcularPix();
+}
+
+// Substitua a função calcularPix no seu js/cadastro.js por esta:
+function calcularPix() {
+    const patrocinadorCheckbox = document.getElementById('patrocinador');
+    const labelPix = document.getElementById('label-pix');
+    
+    const qtdConjuges = Number(document.getElementById('qtd_conjuges')?.value) || 0;
+    const qtdAmigos = Number(document.getElementById('qtd_amigos')?.value) || 0;
+
+    if (!labelPix) return 0;
+
+    // Checa se o checkbox discreto está marcado (checked)
+    const isPatrocinador = patrocinadorCheckbox ? patrocinadorCheckbox.checked : false;
+    const entradaTitular = isPatrocinador ? 0 : 15;
+    
+    const total = entradaTitular + (qtdConjuges * 15) + (qtdAmigos * 20);
+    
+    labelPix.innerText = `R$ ${total},00`;
+    return total;
 }
 
 // Interface: Mostra o input de texto do prato do solteiro
 function controlarSaborSolteiro() {
     const pratoSolteiroField = document.getElementById('prato_solteiro');
-    const grupoSabor = document.getElementById('grupo-sabor-solteiro');
+    const groupSabor = document.getElementById('grupo-sabor-solteiro');
     
-    if (!pratoSolteiroField || !grupoSabor) return;
+    if (!pratoSolteiroField || !groupSabor) return;
 
     if (pratoSolteiroField.value !== "") {
-        grupoSabor.classList.remove('hidden');
+        groupSabor.classList.remove('hidden');
     } else {
-        grupoSabor.classList.add('hidden');
+        groupSabor.classList.add('hidden');
     }
 }
 
@@ -80,7 +91,7 @@ async function controlarOpcoesCaldos() {
     grupoCaldo.classList.remove('hidden');
     selectCaldo.innerHTML = '<option value="">Buscando caldos disponíveis...</option>';
 
-    // CORREÇÃO CRÍTICA: Mudado de 'inscricoes_arraia' para 'cadastro_arraia'
+    // TABELA CORRIGIDA PARA BATER COM O SEU SUPABASE (cadastro_arraia)
     const { data: inscritos, error } = await _supabase
         .from('cadastro_arraia')
         .select('sabor_prato, qtd_conjuges, qtd_amigos');
@@ -215,7 +226,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 status_pix: 'Pendente'
             };
 
-            // CORREÇÃO CRÍTICA: Mudado para salvar na tabela 'cadastro_arraia'
+            // TABELA CORRIGIDA PARA GRAVAÇÃO (cadastro_arraia)
             const { error } = await _supabase.from('cadastro_arraia').insert([payload]);
 
             if (error) {
