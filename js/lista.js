@@ -6,10 +6,10 @@ async function carregarListaPublica() {
     
     container.innerHTML = "Atualizando lista de pratos da mesa coletiva...";
 
-    // CORREÇÃO CRÍTICA: Alterado de 'inscricoes_arraia' para 'cadastro_arraia'
+    // Seleciona os dados da tabela correta no Supabase
     const { data, error } = await _supabase
         .from('cadastro_arraia')
-        .select('nome, categoria_prato, sabor_prato, qtd_conjuges, qtd_amigos')
+        .select('nome, categoria_prato, sabor_prato, qtd_conjuge, qtd_amigos')
         .order('nome', { ascending: true });
 
     if (error) {
@@ -26,7 +26,8 @@ async function carregarListaPublica() {
     // Renderiza a lista na UI em formato de cards mobile limpos
     container.innerHTML = '';
     data.forEach(item => {
-        const totalGrupo = 1 + (Number(item.qtd_conjuges) || 0) + (Number(item.qtd_amigos) || 0);
+        // CORREÇÃO AQUI: Mudado para item.qtd_conjuge (no singular) para a conta fechar certo!
+        const totalGrupo = 1 + (Number(item.qtd_conjuge) || 0) + (Number(item.qtd_amigos) || 0);
         
         container.innerHTML += `
             <div class="card-aluno">
