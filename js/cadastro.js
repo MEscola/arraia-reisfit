@@ -58,21 +58,34 @@ function validarCodigoParceiro() {
     calcularPix();
 }
 
-// Interface: Ajusta se exibe inputs para Solteiro ou Família
+// Interface: Ajusta dinamicamente a exibição de inputs baseados em Grupo e Caldo
 function ajustarFluxoGrupo() {
     const tipoGrupoField = document.getElementById('tipo_grupo');
+    const levaCaldoField = document.getElementById('leva_caldo');
+    
     const fluxoSolteiro = document.getElementById('fluxo-solteiro');
     const fluxoFamilia = document.getElementById('fluxo-familia');
     const blocoAcompanhantes = document.getElementById('campos-acompanhantes');
     
+    const campoSaborSalgadoFamilia = document.getElementById('sabor_salgado_familia')?.closest('.form-group');
+
     if (!tipoGrupoField || !fluxoSolteiro || !fluxoFamilia || !blocoAcompanhantes) return;
 
-    if (tipoGrupoField.value === "Solteiro") {
-        fluxoSolteiro.classList.remove('hidden');
+    const isSolteiro = tipoGrupoField.value === "Solteiro";
+    const levaCaldo = levaCaldoField ? levaCaldoField.value === "Sim" : false;
+
+    if (isSolteiro) {
         fluxoFamilia.classList.add('hidden');
         blocoAcompanhantes.classList.add('hidden');
         
-        // Zera os valores para o cálculo correto do PIX no singular
+        // Regra do Solteiro: Se leva caldo, não leva prato nenhum
+        if (levaCaldo) {
+            fluxoSolteiro.classList.add('hidden');
+        } else {
+            fluxoSolteiro.classList.remove('hidden');
+        }
+        
+        // Zera os acompanhantes para o cálculo correto do PIX do Solteiro
         if(document.getElementById('qtd_conjuge')) document.getElementById('qtd_conjuge').value = 0;
         if(document.getElementById('qtd_amigos')) document.getElementById('qtd_amigos').value = 0;
         if(document.getElementById('criancas')) document.getElementById('criancas').value = '';
@@ -80,6 +93,16 @@ function ajustarFluxoGrupo() {
         fluxoSolteiro.classList.add('hidden');
         fluxoFamilia.classList.remove('hidden');
         blocoAcompanhantes.classList.remove('hidden');
+        
+        // Regra da Família: Se leva caldo, oculta apenas o campo do Prato Salgado
+        if (campoSaborSalgadoFamilia) {
+            if (levaCaldo) {
+                campoSaborSalgadoFamilia.classList.add('hidden');
+                document.getElementById('sabor_salgado_familia').value = ''; // Limpa se estiver oculto
+            } else {
+                campoSaborSalgadoFamilia.classList.remove('hidden');
+            }
+        }
     }
     calcularPix();
 }
@@ -105,6 +128,9 @@ async function controlarOpcoesCaldos() {
     const selectCaldo = document.getElementById('sabor_caldo');
     
     if (!levaCaldoField || !grupoCaldo || !selectCaldo) return;
+
+    // Dispara a reorganização visual dos pratos reativamente baseada na escolha do caldo
+    ajustarFluxoGrupo();
 
     if (levaCaldoField.value === 'Não') {
         grupoCaldo.classList.add('hidden');
@@ -215,6 +241,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const campoAmigos = document.getElementById('qtd_amigos');
     const selectTipoGrupo = document.getElementById('tipo_grupo');
     const selectLevaCaldo = document.getElementById('leva_caldo');
+    const inputCodigoParceiro = document.getElementById('codigo_parceiro');
 
     if (campoConjuges) {
         campoConjuges.addEventListener('input', () => { calcularPix(); controlarOpcoesCaldos(); });
@@ -227,6 +254,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     if (selectLevaCaldo) {
         selectLevaCaldo.addEventListener('change', () => { controlarOpcoesCaldos(); });
+    }
+    // FIX CRÍTICO: Dispara o recálculo do PIX instantaneamente enquanto o usuário digita a palavra chave
+    if (inputCodigoParceiro) {
+        inputCodigoParceiro.addEventListener('input', () => { validarCodigoParceiro(); });
     }
 
     // FORMULÁRIO DE ENVIO PARA O BANCO
@@ -256,28 +287,37 @@ window.addEventListener('DOMContentLoaded', () => {
             let saborFinal = "";
 
             if (tipoGrupo === "Solteiro") {
-                categoryFinal = document.getElementById('prato_solteiro').value;
-                saborFinal = document.getElementById('sabor_prato_solteiro').value || "Não especificado";
-                
-                if (!categoryFinal) {
-                    alert("Por favor, selecione se trará um prato Doce ou Salgado!");
-                    btn.disabled = false;
-                    btn.innerText = "Confirmar Cadastro";
-                    return;
+                if (levaCaldo === 'Sim') {
+                    categoryFinal = "Caldo 🥣";
+                    saborFinal = saborCaldo;
+                } else {
+                    categoryFinal = document.getElementById('prato_solteiro').value;
+                    saborFinal = document.getElementById('sabor_prato_solteiro').value || "Não especificado";
+                    
+                    if (!categoryFinal) {
+                        alert("Por favor, selecione se trará um prato Doce ou Salgado!");
+                        btn.disabled = false;
+                        btn.innerText = "Confirmar Cadastro";
+                        return;
+                    }
                 }
             } else {
                 const doce = document.getElementById('sabor_doce_familia').value || "Doce não especificado";
-                const salgado = document.getElementById('sabor_salgado_familia').value || "Salgado não especificado";
                 
-                categoryFinal = "Doce e Salgado 🍫🥐";
-                saborFinal = `Doce: ${doce} | Salgado: ${salgado}`;
+                if (levaCaldo === 'Sim') {
+                    categoryFinal = "Caldo (Salgado) e Prato Doce 🥣🍫";
+                    saborFinal = `Caldo: ${saborCaldo} | Doce: ${doce}`;
+                } else {
+                    const salgado = document.getElementById('sabor_salgado_familia').value || "Salgado não especificado";
+                    categoryFinal = "Doce e Salgado 🍫🥐";
+                    saborFinal = `Doce: ${doce} | Salgado: ${salgado}`;
+                }
             }
 
             const totalPix = calcularPix();
             const checkboxAtivo = document.getElementById('patrocinador')?.checked;
             const nivelParceria = checkboxAtivo ? obterNivelParceria() : "invalido";
 
-            // Mapeia de forma amigável as tags de status que o Financeiro lerá no Painel ADM
             let statusPixFinal = "Pendente";
             if (nivelParceria === "100") {
                 statusPixFinal = "Box Friendly (Isenção Total)";
@@ -292,10 +332,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 qtd_amigos: qtdAmigos,
                 criancas: document.getElementById('criancas').value,
                 leva_caldo: levaCaldo,
-                categoria_prato: levaCaldo === 'Sim' ? `Caldo (${saborCaldo}) + ${categoryFinal}` : categoryFinal,
-                sabor_prato: levaCaldo === 'Sim' ? saborCaldo : saborFinal, 
+                categoria_prato: categoryFinal,
+                sabor_prato: saborFinal, 
                 total_pix: totalPix,
-                status_pix: statusPixFinal // Envia a identificação limpa e segura para o Supabase
+                status_pix: statusPixFinal
             };
 
             const { error } = await _supabase.from('cadastro_arraia').insert([payload]);
