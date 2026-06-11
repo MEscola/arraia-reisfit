@@ -78,8 +78,7 @@
                     </div>
                     <div class="form-group">
                         <label for="criancas">Crianças &lt; 13 anos (Não pagam)</label>
-                        <textarea id="criancas" rows="2"
-                            placeholder="Liste nomes e idades para controle..."></textarea>
+                        <textarea id="criancas" rows="2" placeholder="Liste nomes e idades para controle..."></textarea>
                     </div>
                 </div>
 
@@ -171,7 +170,8 @@
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-            const hashCorreto = "bf258b389ee42a84976722237000dfb42fa0e66ff7c0fb6097ff8b71329bf337";
+            
+            const hashCorreto = "1056f7097746bc5e96646b97e596706e226d9c6e3b2e7208170b021313426e78";
 
             if (hashHex === hashCorreto) {
                 window.location.href = "adm.html";
