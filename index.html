@@ -59,7 +59,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="tipo_grupo">Como você vem?</label>
+                        <label for="tipo_grupo">Como você vai?</label>
                         <select id="tipo_grupo" onchange="ajustarFluxoGrupo()" required>
                             <option value="Solteiro">Vou Sozinho (1 pessoa)</option>
                             <option value="Casal/Família">Vou em Casal / Família</option>
@@ -127,8 +127,16 @@
 
                 <div class="pix-box">
                     <p>Total do investimento via PIX</p>
+                    <!-- Este valor abaixo muda sozinho e de forma dinâmica enquanto o aluno digita! -->
                     <div class="pix-value" id="label-pix">R$ 15,00</div>
-                    <div class="pix-key">Chave PIX: recepcao@reisfit.com.br</div>
+                    <div class="pix-key" style="margin-bottom: 10px;">Chave PIX: recepcao@reisfit.com.br</div>
+
+                    <!-- Botão de clique rápido que facilita a cópia no celular -->
+                    <button type="button" id="btn-copiar-pix" class="btn"
+                        style="background: #FF9800; color: white; padding: 8px 15px; font-size: 13px; width: auto; border-radius: 4px; margin: 5px auto 0 auto; display: block;"
+                        onclick="copiarChavePixRapido()">
+                        📋 Copiar Chave PIX
+                    </button>
                 </div>
 
                 <button type="submit" id="btn-enviar" class="btn btn-primary">Confirmar Cadastro</button>
@@ -172,5 +180,6 @@
         }
     </script>
 </body>
+
 </html>
 <!-- Fim do arquivo index.html -->

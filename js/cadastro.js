@@ -193,6 +193,7 @@ async function controlarOpcoesCaldos() {
 function calcularPix() {
     const patrocinadorCheckbox = document.getElementById('patrocinador');
     const labelPix = document.getElementById('label-pix');
+    const btnCopiar = document.getElementById('btn-copiar-pix');
     
     const qtdConjuges = Number(document.getElementById('qtd_conjuge')?.value) || 0;
     const qtdAmigos = Number(document.getElementById('qtd_amigos')?.value) || 0;
@@ -230,13 +231,16 @@ function calcularPix() {
         
         if (nivelParceria === "100" || (nivelParceria === "50" && tipoGrupo === "Solteiro")) {
             labelPix.innerText = "Parceiro Isento ✨";
+            if (btnCopiar) btnCopiar.classList.add('hidden'); // Esconde o botão se for 100% isento
         } else {
             labelPix.innerText = `R$ ${total},00`;
+            if (btnCopiar) btnCopiar.classList.remove('hidden'); // Mostra se tiver valor residual
         }
 
     } else {
-        // Se o valor for maior que zero (ex: nível 50 mas com acompanhantes que pagam)
+        // Se o valor for maior que zero (ex: aluno comum ou nível 50 com acompanhantes pagantes)
         labelPix.innerText = `R$ ${total},00`;
+        if (btnCopiar) btnCopiar.classList.remove('hidden'); // Garante que o botão aparece para quem precisa pagar
     }
 
     return total;
@@ -362,4 +366,26 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Função para copiar a chave PIX com um único clique no celular
+function copiarChavePixRapido() {
+    const chavePix = "recepcao@reisfit.com.br";
+    
+    navigator.clipboard.writeText(chavePix).then(() => {
+        const btn = document.getElementById('btn-copiar-pix');
+        if (btn) {
+            btn.innerText = "✨ Chave Copiada!";
+            btn.style.backgroundColor = "#4CAF50"; // Muda para verde para dar o feedback de sucesso
+            
+            // Volta para o texto padrão com a cor laranja depois de 3 segundos
+            setTimeout(() => {
+                btn.innerText = "📋 Copiar Chave PIX";
+                btn.style.backgroundColor = "#FF9800";
+            }, 3000);
+        }
+    }).catch(err => {
+        // Caso o navegador do celular bloqueie o recurso de cópia automática por segurança
+        alert("Não foi possível copiar automaticamente. Use a chave: " + chavePix);
+    });
+}
 });
