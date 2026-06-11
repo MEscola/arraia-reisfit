@@ -32,7 +32,7 @@ async function carregarDadosPainelAdmin() {
     let faturamentoPublicoGeral = 0;
     let faturamentoPatrocinios = 0;
     let totalPessoasGeral = 0;
-    let totalPessoasConfirmadas = 0;
+    let totalPessoasPagas = 0;
 
     tabelaCorpo.innerHTML = '';
 
@@ -42,57 +42,65 @@ async function carregarDadosPainelAdmin() {
             const amigos = Number(item.qtd_amigos) || 0;
             const totalPessoasLinha = 1 + conjuge + amigos;
             
-            // Soma total absoluto de pessoas
+            // Controle físico absoluto de inscritos
             totalPessoasGeral += totalPessoasLinha;
 
-            const ehParceiro = item.status_pix && item.status_pix.includes("Box Friendly");
+            const ehParceiro = item.status_pix && (item.status_pix.includes("Box Friendly") || item.status_pix.includes("Parceria") || item.status_pix.includes("Parceiro"));
             const statusAtual = item.status_pix || "Pendente";
 
-            // Se estiver validado/pago, entra no contador de confirmados
-            if (statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada") {
-                totalPessoasConfirmadas += totalPessoasLinha;
+            // Se o cadastro estiver validado ou pago, entra na contagem de Pagos ativos
+            if (statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual.includes("Pago")) {
+                totalPessoasPagas += totalPessoasLinha;
             }
             
-            // CÁLCULO FINANCEIRO DINÂMICO
-            let valorCalculadoInscricao = 0;
+            // 1. CÁLCULO ESTRETO DE INSCRIÇÃO (Sempre vai para o caixa de Alunos/Geral)
+            let valorInscricaoCalculada = 0;
             if (ehParceiro) {
-                valorCalculadoInscricao = (conjuge * 15) + (amigos * 20); // Titular parceiro é R$ 0
+                // Titular Parceiro é ISENTO (R$ 0). Só calcula se ele trouxe cônjuge (R$15) ou amigo (R$20)
+                valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
             } else {
-                valorCalculadoInscricao = 15 + (conjuge * 15) + (amigos * 20); // Aluno comum
+                // Aluno comum: R$ 15 do titular + acompanhantes
+                valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20);
             }
 
-            const valorFinalLinha = (Number(item.total_pix) > 0 || statusAtual === 'Parceria Confirmada') ? Number(item.total_pix) : valorCalculadoInscricao;
+            // 2. ISOLA A DOAÇÃO PURA DO PARCEIRO
+            // O valor lançado no banco (total_pix) para parceiros passa a ser exclusivamente a DOAÇÃO DELE.
+            // Se ainda não foi digitado nada, ele é rigorosamente R$ 0,00.
+            const valorDoacaoPura = ehParceiro ? (Number(item.total_pix) || 0) : 0;
 
-            // SEGREGAÇÃO DO DINHEIRO NOS CAIXAS DO TOPO
+            // REGRA DO SEU CAIXA: 
+            // Toda e qualquer inscrição vai para o Geral (Alunos).
+            // Apenas a Doação Pura do parceiro entra no caixa de Patrocínios.
+            faturamentoPublicoGeral += valorInscricaoCalculada;
             if (ehParceiro) {
-                faturamentoPatrocinios += valorFinalLinha;
-            } else {
-                faturamentoPublicoGeral += valorFinalLinha;
+                faturamentoPatrocinios += valorDoacaoPura;
             }
 
-            // Estilos visuais limpos dos Status
+            // O valor total exibido na linha do parceiro é a Inscrição dos acompanhantes dele + a Doação Pura dele
+            const valorExibicaoLinha = ehParceiro ? (valorInscricaoCalculada + valorDoacaoPura) : valorInscricaoCalculada;
+
+            // GERENCIAMENTO DE STATUS UNIFICADO
             let statusTexto = "⏳ Pendente";
             let estiloBadge = "background: rgba(255, 152, 0, 0.1); color: #FF9800; border: 1px solid rgba(255, 152, 0, 0.2);";
 
-            if (statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada") {
-                statusTexto = "✅ Confirmado";
+            if (statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual === "Pago (Parceiro)") {
+                statusTexto = "✅ Pago";
                 estiloBadge = "background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.2);";
             } else if (statusAtual === "Parcial" || statusAtual === "Pagamento Parcial") {
                 statusTexto = "⚡ Parcial";
                 estiloBadge = "background: rgba(255, 87, 34, 0.1); color: #FF5722; border: 1px solid rgba(255, 87, 34, 0.2);";
-            } else if (ehParceiro) {
-                statusTexto = "🤝 Parceiro";
-                estiloBadge = "background: rgba(33, 150, 243, 0.1); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.2);";
+            } else if (ehParceiro && valorDoacaoPura === 0) {
+                statusTexto = "⏳ Pendente";
+                estiloBadge = "background: rgba(255, 152, 0, 0.1); color: #FF9800; border: 1px solid rgba(255, 152, 0, 0.2);";
             }
 
-            // Se for parceiro, o valor ganha um aviso visual clicável para você saber que pode editar a doação ali
+            // COLUNA VALOR: Passando estritamente 'valorDoacaoPura' para a função de clique para abrir limpo!
             const celulaValorHTML = ehParceiro ? 
-                `<td style="padding: 12px; font-weight: bold; color: #00BCD4; cursor: pointer; text-decoration: underline;" id="celula-valor-${item.id}" onclick="abrirEdicaoValorManual('${item.id}', ${valorFinalLinha})" title="Clique para definir o valor da doação">R$ ${valorFinalLinha},00 ✏️</td>` :
-                `<td style="padding: 12px; font-weight: bold; color: #fff;" id="celula-valor-${item.id}">R$ ${valorFinalLinha},00</td>`;
+                `<td style="padding: 12px; font-weight: bold; color: #00BCD4; cursor: pointer; white-space: nowrap;" id="celula-valor-${item.id}" onclick="abrirEdicaoDoacaoParceiro('${item.id}', ${valorDoacaoPura})" title="Clique no 🤝 para somar valor de patrocínio">R$ ${valorExibicaoLinha},00 🤝</td>` :
+                `<td style="padding: 12px; font-weight: bold; color: #fff; white-space: nowrap;" id="celula-valor-${item.id}">R$ ${valorExibicaoLinha},00</td>`;
 
-            const nomeExibicao = ehParceiro ? `<strong>${item.nome}</strong> <span style="color: #00BCD4; font-size: 11px;">(🤝 Parceiro)</span>` : `<strong>${item.nome}</strong>`;
+            const nomeExibicao = ehParceiro ? `<strong>${item.nome}</strong> <span style="color: #00BCD4; font-size: 11px;">(Parceiro)</span>` : `<strong>${item.nome}</strong>`;
 
-            // Montagem da tabela alinhada exatamente igual ao seu desenho
             tabelaCorpo.innerHTML += `
                 <tr id="linha-${item.id}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td style="padding: 12px;" id="celula-nome-${item.id}">
@@ -100,10 +108,14 @@ async function carregarDadosPainelAdmin() {
                         <small style="color:#888; display:block; margin-top:2px;">${item.tipo_grupo} (${totalPessoasLinha} p.)</small>
                     </td>
                     ${celulaValorHTML}
-                    <td style="padding: 12px;"><span class="badge-status" style="padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; ${estiloBadge}">${statusTexto}</span></td>
+                    <td style="padding: 12px; width: 70px; min-width: 70px; white-space: nowrap;">
+                        <span class="badge-status" style="padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; ${estiloBadge}">
+                            ${statusTexto}
+                        </span>
+                    </td>
                     <td style="padding: 12px; text-align: center;">
                         <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;" id="acoes-${item.id}">
-                            <button onclick="alterarStatusRapido('${item.id}', '${ehParceiro ? 'Parceria Confirmada' : 'Confirmado'}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>
+                            <button onclick="alterarStatusRapido('${item.id}', '${ehParceiro ? 'Pago (Parceiro)' : 'Pago'}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>
                             <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos})" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
                             <button onclick="deletarInscricao('${item.id}')" style="background:#f44336; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Excluir</button>
                         </div>
@@ -115,17 +127,17 @@ async function carregarDadosPainelAdmin() {
         tabelaCorpo.innerHTML = '<tr><td colspan="4" style="padding:30px; text-align:center; color:#aaa;">Nenhum registro.</td></tr>';
     }
 
-    // ATUALIZA OS INDICADORES FINANCEIROS GERAIS DO TOPO
+    // ATUALIZA OS CONTADORES DO CARD CINZA NO TOPO
     if (containerPublico) containerPublico.innerText = `R$ ${faturamentoPublicoGeral},00`;
     if (containerPatrocinios) containerPatrocinios.innerText = `R$ ${faturamentoPatrocinios},00`;
     if (containerGeral) containerGeral.innerText = `R$ ${faturamentoPublicoGeral + faturamentoPatrocinios},00`;
     
-    // ATUALIZA OS CONTADORES LADO A LADO
+    // ATUALIZA OS DOIS CONTADORES DE PÚBLICO LADO A LADO
     const elGeral = document.getElementById('total-pessoas-contagem');
-    const elConfirmados = document.getElementById('total-pessoas-confirmadas');
+    const elPagas = document.getElementById('total-pessoas-confirmadas');
     
     if (elGeral) elGeral.innerText = totalPessoasGeral;
-    if (elConfirmados) elConfirmados.innerText = totalPessoasConfirmadas;
+    if (elPagas) elPagas.innerText = totalPessoasPagas;
 }
 
 async function alterarStatusRapido(id, novoStatus) {
@@ -135,36 +147,43 @@ async function alterarStatusRapido(id, novoStatus) {
         .eq('id', id);
 
     if (error) {
-        alert("Erro ao validar: " + error.message);
+        alert("Erro ao salvar: " + error.message);
     } else {
         carregarDadosPainelAdmin();
     }
 }
 
-// ATIVADO AO CLICAR DIRETO NO VALOR DO PARCEIRO
-function abrirEdicaoValorManual(id, valorAtual) {
+// TRAVA ATIVADA: Agora passa unicamente a doação isolada. Se for 0, o input abre limpo e zerado!
+function abrirEdicaoDoacaoParceiro(id, doacaoAtual) {
     const celula = document.getElementById(`celula-valor-${id}`);
     if (!celula) return;
 
-    celula.removeAttribute('onclick'); // Desativa o clique temporariamente para não dar loop
+    celula.removeAttribute('onclick'); 
     celula.innerHTML = `
         <div style="display: flex; align-items: center; gap: 2px;">
-            <input type="number" id="input-valor-${id}" value="${valorAtual}" style="width:55px; background:#333; color:#fff; border:1px solid #555; padding:4px; border-radius:4px; font-size:12px;">
-            <button onclick="salvarValorManual('${id}')" style="background:#4CAF50; color:#fff; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:11px;">OK</button>
+            <input type="number" id="input-doacao-${id}" value="${doacaoAtual === 0 ? '' : doacaoAtual}" placeholder="R$ 0" style="width:55px; background:#333; color:#fff; border:1px solid #555; padding:4px; border-radius:4px; font-size:12px;">
+            <button onclick="salvarDoacaoParceiro('${id}')" style="background:#4CAF50; color:#fff; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">OK</button>
         </div>
     `;
+    
+    // Coloca o foco direto no campo para facilitar no celular
+    setTimeout(() => {
+        const input = document.getElementById(`input-doacao-${id}`);
+        if (input) input.focus();
+    }, 50);
 }
 
-async function salvarValorManual(id) {
-    const valorDigitado = Number(document.getElementById(`input-valor-${id}`).value) || 0;
+async function salvarDoacaoParceiro(id) {
+    const valorDoado = Number(document.getElementById(`input-doacao-${id}`).value) || 0;
 
+    // Grava a doação isolada e define o status como Pago
     const { error } = await _supabase
         .from('cadastro_arraia')
-        .update({ total_pix: valorDigitado, status_pix: 'Parceria Confirmada' })
+        .update({ total_pix: valorDoado, status_pix: 'Pago (Parceiro)' })
         .eq('id', id);
 
     if (error) {
-        alert("Erro ao salvar: " + error.message);
+        alert("Erro ao lançar patrocínio: " + error.message);
     } else {
         carregarDadosPainelAdmin();
     }
@@ -206,13 +225,12 @@ async function salvarEdicaoCadastroCompleta(id) {
             nome: nomeAlt,
             tipo_grupo: grupoAlt,
             qtd_conjuge: conjugeAlt,
-            qtd_amigos: amigosAlt,
-            total_pix: 0 
+            qtd_amigos: amigosAlt
         })
         .eq('id', id);
 
     if (error) {
-        alert("Erro ao salvar: " + error.message);
+        alert("Erro ao salvar alterações: " + error.message);
     } else {
         carregarDadosPainelAdmin();
     }
