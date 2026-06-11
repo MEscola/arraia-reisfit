@@ -153,27 +153,24 @@
         </div>
     </nav>
 
-    <script src="js/supabase.js"></script>
-    <script src="js/cadastro.js"></script>
+    <script src="js/supabase.js?v=2"></script>
+    <script src="js/cadastro.js?v=2"></script>
     <script>
         function verificarAcessoAdmRedirecionamento() {
             const senhaDigitada = prompt("Digite a senha do Financeiro ADM:");
             if (!senhaDigitada) return;
 
-            // Transforma tudo para minúsculo e limpa espaços invisíveis
+            // Transforma tudo para minúsculo e remove qualquer espaço
             const senhaTratada = senhaDigitada.toLowerCase().trim();
 
-            // Técnica de espelhamento para esconder a palavra "reisfit2026" de robôs ou curiosos comuns
-            const senhaSecretaEscondida = "6202tif建设项目".replace("建设项目", "sier"); // Isso reconstrói "6202tifsier"
-            const senhaCorreta = senhaSecretaEscondida.split('').reverse().join(''); // Inverte de volta para "reisfit2026"
-
-            if (senhaTratada === senhaCorreta) {
-                window.location.href = "adm.html";
+            // Validação direta sem funções complexas que o navegador possa bloquear
+            if (senhaTratada === "reisfit2026") {
+                window.location.href = "adm.html?v=2";
             } else {
                 alert("Senha incorreta, acesso negado!");
             }
         }
     </script>
 </body>
-
 </html>
+<!-- Fim do arquivo index.html -->

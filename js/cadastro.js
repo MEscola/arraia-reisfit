@@ -221,10 +221,21 @@ function calcularPix() {
 
     const total = entradaTitular + (qtdConjuges * taxaConjuge) + (qtdAmigos * taxaAmigo);
     
-    // Tratamento estético amigável para quando o valor zerar totalmente
-    if (total === 0 && patrocinadorCheckbox && patrocinadorCheckbox.checked && obterNivelParceria() === "100") {
-        labelPix.innerText = "Parceiro Isento ✨";
+    // Captura o tipo de grupo selecionado na tela de forma correta
+    const tipoGrupo = document.getElementById('tipo_grupo')?.value || "Solteiro";
+    const nivelParceria = obterNivelParceria();
+    
+    // REGRA UNIFICADA: Se deu zero e o switch está ligado, valida os cenários de Isenção
+    if (total === 0 && patrocinadorCheckbox && patrocinadorCheckbox.checked) {
+        
+        if (nivelParceria === "100" || (nivelParceria === "50" && tipoGrupo === "Solteiro")) {
+            labelPix.innerText = "Parceiro Isento ✨";
+        } else {
+            labelPix.innerText = `R$ ${total},00`;
+        }
+
     } else {
+        // Se o valor for maior que zero (ex: nível 50 mas com acompanhantes que pagam)
         labelPix.innerText = `R$ ${total},00`;
     }
 

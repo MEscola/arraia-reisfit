@@ -84,30 +84,26 @@
     </nav>
 
     <!-- Importação dos scripts na raiz do ecossistema -->
-   <script src="js/supabase.js"></script>
-    <script src="js/adm.js"></script>
+   <script src="js/supabase.js?v=2"></script>
+    <script src="js/adm.js?v=2"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const senhaDigitada = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
                 if (!senhaDigitada) {
-                    window.location.href = "index.html";
+                    window.location.href = "index.html?v=2";
                     return;
                 }
 
                 const senhaTratada = senhaDigitada.toLowerCase().trim();
 
-                // Mesma técnica de segurança direta por inversão
-                const senhaSecretaEscondida = "6202tif建设项目".replace("建设项目", "sier");
-                const senhaCorreta = senhaSecretaEscondida.split('').reverse().join('');
-
-                if (senhaTratada === senhaCorreta) {
+                if (senhaTratada === "reisfit2026") {
                     const blocoSeguro = document.getElementById('bloco-seguro');
                     if (blocoSeguro) blocoSeguro.classList.add('autorizado');
                     if (typeof carregarPainelADM === 'function') carregarPainelADM();
                 } else {
                     alert("Senha incorreta!");
-                    window.location.href = "index.html";
+                    window.location.href = "index.html?v=2";
                 }
             }, 200);
         });
