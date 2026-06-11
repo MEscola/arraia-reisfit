@@ -11,11 +11,12 @@ const CALDOS_OFICIAIS = [
     "Caldo de abóbora"
 ];
 
-// Interface: Exibe ou esconde o input de valor da doação
+// Interface: Exibe ou esconde o bloco confidencial de parceria
 function controlarFluxoPatrocinio() {
     const checkbox = document.getElementById('patrocinador');
     const grupoValor = document.getElementById('grupo-valor-doacao');
-    const inputValor = document.getElementById('valor_doacao');
+    const inputCodigo = document.getElementById('codigo_parceiro');
+    const avisoValido = document.getElementById('aviso-parceiro-valido');
 
     if (!checkbox || !grupoValor) return;
 
@@ -23,7 +24,36 @@ function controlarFluxoPatrocinio() {
         grupoValor.classList.remove('hidden');
     } else {
         grupoValor.classList.add('hidden');
-        if (inputValor) inputValor.value = ''; // Limpa o valor digitado se desligar
+        if (inputCodigo) inputCodigo.value = '';
+        if (avisoValido) avisoValido.classList.add('hidden');
+    }
+    calcularPix();
+}
+
+// Lógica: Retorna qual o nível do código digitado ('50', '100' ou 'invalido')
+function obterNivelParceria() {
+    const inputCodigo = document.getElementById('codigo_parceiro');
+    if (!inputCodigo) return 'invalido';
+
+    const codigoTratado = inputCodigo.value.toLowerCase().trim();
+
+    if (codigoTratado === "reisfit50") return "50";
+    if (codigoTratado === "reisfit100") return "100";
+
+    return "invalido";
+}
+
+// Interface: Mostra o aviso de sucesso apenas se o código for válido
+function validarCodigoParceiro() {
+    const avisoValido = document.getElementById('aviso-parceiro-valido');
+    if (!avisoValido) return;
+
+    const nivel = obterNivelParceria();
+
+    if (nivel !== "invalido") {
+        avisoValido.classList.remove('hidden');
+    } else {
+        avisoValido.classList.add('hidden');
     }
     calcularPix();
 }
@@ -133,11 +163,9 @@ async function controlarOpcoesCaldos() {
     }
 }
 
-// Regra de Negócio Dinâmica: Aplica isenções escalonadas baseadas na doação do patrocinador
+// Regra de Negócio Dinâmica: Aplica descontos confidenciais baseados nos tokens de parceria
 function calcularPix() {
-    //patrocinador no index está como "Sou Box Friendly", mas a lógica de cálculo continua a mesma, apenas o nome do checkbox mudou para refletir a nova abordagem de patrocínio coletivo. O ID do checkbox permanece 'patrocinador' para manter a consistência com o código existente.
     const patrocinadorCheckbox = document.getElementById('patrocinador');
-    const valorDoacaoField = document.getElementById('valor_doacao');
     const labelPix = document.getElementById('label-pix');
     
     const qtdConjuges = Number(document.getElementById('qtd_conjuge')?.value) || 0;
@@ -145,31 +173,35 @@ function calcularPix() {
 
     if (!labelPix) return 0;
 
-    let valorDoacao = 0;
+    // Valores padrão cobrados de alunos normais
     let entradaTitular = 15;
     let taxaConjuge = 15;
     let taxaAmigo = 20;
 
-    // Se o switch estiver ligado, lê o valor da doação digitado
+    // Se o switch estiver ligado, checa a palavra-chave secreta digitada
     if (patrocinadorCheckbox && patrocinadorCheckbox.checked) {
-        valorDoacao = Number(valorDoacaoField?.value) || 0;
+        const nivel = obterNivelParceria();
 
-        // Regra de escalonamento de benefícios
-        if (valorDoacao >= 100) {
-            // A partir de R$ 100: Isenção TOTAL (família inteira zera as taxas de entrada)
+        if (nivel === "100") {
+            // Isenção TOTAL (Titular e Família inteira zerados)
             entradaTitular = 0;
             taxaConjuge = 0;
             taxaAmigo = 0;
-        } else if (valorDoacao >= 50) {
-            // Entre R$ 50 e R$ 99: Isenção individual apenas do titular
+        } else if (nivel === "50") {
+            // Isenção INDIVIDUAL (Apenas o Titular zera)
             entradaTitular = 0;
         }
     }
 
-    // Soma final: A doação em dinheiro + taxas residuais do grupo
-    const total = valorDoacao + entradaTitular + (qtdConjuges * taxaConjuge) + (qtdAmigos * taxaAmigo);
+    const total = entradaTitular + (qtdConjuges * taxaConjuge) + (qtdAmigos * taxaAmigo);
     
-    labelPix.innerText = `R$ ${total},00`;
+    // Tratamento estético amigável para quando o valor zerar totalmente
+    if (total === 0 && patrocinadorCheckbox && patrocinadorCheckbox.checked && obterNivelParceria() === "100") {
+        labelPix.innerText = "Parceiro Isento ✨";
+    } else {
+        labelPix.innerText = `R$ ${total},00`;
+    }
+
     return total;
 }
 
@@ -242,6 +274,17 @@ window.addEventListener('DOMContentLoaded', () => {
             }
 
             const totalPix = calcularPix();
+            const checkboxAtivo = document.getElementById('patrocinador')?.checked;
+            const nivelParceria = checkboxAtivo ? obterNivelParceria() : "invalido";
+
+            // Mapeia de forma amigável as tags de status que o Financeiro lerá no Painel ADM
+            let statusPixFinal = "Pendente";
+            if (nivelParceria === "100") {
+                statusPixFinal = "Box Friendly (Isenção Total)";
+            } else if (nivelParceria === "50") {
+                statusPixFinal = "Box Friendly (Isenção Titular)";
+            }
+
             const payload = {
                 nome: document.getElementById('nome').value,
                 tipo_grupo: tipoGrupo,
@@ -252,7 +295,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 categoria_prato: levaCaldo === 'Sim' ? `Caldo (${saborCaldo}) + ${categoryFinal}` : categoryFinal,
                 sabor_prato: levaCaldo === 'Sim' ? saborCaldo : saborFinal, 
                 total_pix: totalPix,
-                status_pix: 'Pendente'
+                status_pix: statusPixFinal // Envia a identificação limpa e segura para o Supabase
             };
 
             const { error } = await _supabase.from('cadastro_arraia').insert([payload]);
@@ -262,7 +305,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 btn.disabled = false;
                 btn.innerText = "Confirmar Cadastro";
             } else {
-                alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: R$ ${totalPix},00\n\nAcompanhe a evolução da mesa coletiva na próxima tela!`);
+                alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: ${totalPix === 0 && statusPixFinal.includes("Total") ? "Isento ✨" : "R$ " + totalPix + ",00"}\n\nAcompanhe a evolução da mesa coletiva na próxima tela!`);
                 formulario.reset();
                 window.location.href = "lista.html"; 
             }
