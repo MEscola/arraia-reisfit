@@ -1,44 +1,93 @@
 // js/lista.js
 
+// Carrega a lista pública de confirmados e atualiza o painel geral de pratos
 async function carregarListaPublica() {
-    const container = document.getElementById('lista-alunos-container');
-    if (!container) return;
-    
-    container.innerHTML = "Atualizando lista de pratos da mesa coletiva...";
+    const corpoTabela = document.getElementById('tabela-lista-corpo');
+    if (!corpoTabela) return;
 
-    // Seleciona os dados da tabela correta no Supabase
+    corpoTabela.innerHTML = "<tr><td colspan='3'>Carregando a mesa coletiva...</td></tr>";
+
+    // Busca os dados necessários no Supabase
     const { data, error } = await _supabase
         .from('cadastro_arraia')
-        .select('nome, categoria_prato, sabor_prato, qtd_conjuge, qtd_amigos')
-        .order('nome', { ascending: true });
+        .select('nome, categoria_prato, sabor_prato, qtd_conjuge, qtd_amigos, status_pix')
+        .order('created_at', { ascending: false });
 
     if (error) {
         console.error("Erro ao carregar lista pública:", error);
-        container.innerHTML = "<p style='color:#F44336;'>Erro ao sincronizar dados da mesa de pratos.</p>";
+        corpoTabela.innerHTML = "<tr><td colspan='3'>Erro ao carregar os dados da mesa coletiva.</td></tr>";
         return;
     }
 
-    if (!data || data.length === 0) {
-        container.innerHTML = "<p style='color:#aaa; text-align:center;'>Nenhuma inscrição realizada até o momento.<br>Seja o primeiro a montar a mesa! 🤠</p>";
-        return;
-    }
+    // Inicializa os contadores para o painel de resumo público
+    let totalCaldos = 0;
+    let totalDoces = 0;
+    let totalSalgados = 0;
+    let totalConfirmadosGeral = 0;
 
-    // Renderiza a lista na UI em formato de cards mobile limpos
-    container.innerHTML = '';
-    data.forEach(item => {
-        // CORREÇÃO AQUI: Mudado para item.qtd_conjuge (no singular) para a conta fechar certo!
-        const totalGrupo = 1 + (Number(item.qtd_conjuge) || 0) + (Number(item.qtd_amigos) || 0);
-        
-        container.innerHTML += `
-            <div class="card-aluno">
-                <strong>${item.nome}</strong> (${totalGrupo} ${totalGrupo > 1 ? 'pessoas' : 'pessoa'})<br>
-                <div style="margin-top: 5px; font-size: 14px; line-height: 1.4;">
-                    <span style="color:#FFC107; font-weight:bold;">Confirmou:</span> ${item.categoria_prato}
-                </div>
-                <div style="margin-top: 2px; font-size: 13px; color: #bbb; font-style: italic;">
-                    ${item.sabor_prato}
-                </div>
-            </div>
+    corpoTabela.innerHTML = '';
+
+    // Varre os registros do banco para montar a tabela
+    data.forEach(aluno => {
+        const categoria = aluno.categoria_prato || '';
+        const sabor = aluno.sabor_prato || '';
+        const status = aluno.status_pix || 'Pendente';
+
+        // Lógica de contagem de público (Titular + Acompanhantes)
+        const conjuge = Number(aluno.qtd_conjuge) || 0;
+        const amigos = Number(aluno.qtd_amigos) || 0;
+        const totalPessoasGrupo = 1 + conjuge + amigos;
+
+        // Acumula no contador geral do evento
+        totalConfirmadosGeral += totalPessoasGrupo;
+
+        // Contabilidade visual dos pratos e caldos trazidos pelo grupo
+        if (categoria.includes("Caldo")) {
+            totalCaldos += totalPessoasGrupo;
+        }
+        if (categoria.includes("Doce")) {
+            totalDoces += 1; // Conta o prato da família/solteiro
+        }
+        if (categoria.includes("Salgado")) {
+            totalSalgados += 1;
+        }
+
+        // Cria a tag visual do status de pagamento de forma sutil para o público
+        let statusTag = "";
+        if (status === 'Pago') {
+            statusTag = `<span style="color: #4CAF50; font-weight: bold;">✅ Confirmado</span>`;
+        } else if (status.includes("Box Friendly")) {
+            statusTag = `<span style="color: #2196F3; font-weight: bold;">🤝 Parceiro</span>`;
+        } else {
+            statusTag = `<span style="color: #FF9800; font-style: italic;">⚠️ Aguardando</span>`;
+        }
+
+        // Injeta a linha na tabela pública
+        corpoTabela.innerHTML += `
+            <tr>
+                <td><strong>${aluno.nome}</strong><br><small style="color: #888;">Grupo de ${totalPessoasGrupo}p</small></td>
+                <td>
+                    <span style="color: #ffc107; font-weight: bold;">${categoria}</span><br>
+                    <small style="color: #bbb; display: block; max-width: 180px; word-wrap: break-word;">${sabor}</small>
+                </td>
+                <td><small>${statusTag}</small></td>
+            </tr>
         `;
     });
+
+    // Atualiza os cards informativos da tela pública se eles existirem no HTML
+    const containerCaldos = document.getElementById('resumo-caldos');
+    const containerDoces = document.getElementById('resumo-doces');
+    const containerSalgados = document.getElementById('resumo-salgados');
+    const containerTotalGeral = document.getElementById('resumo-total-pessoas');
+
+    if (containerCaldos) containerCaldos.innerText = `${totalCaldos}p nos Caldos 🥣`;
+    if (containerDoces) containerDoces.innerText = `${totalDoces} Pratos Doces 🍫`;
+    if (containerSalgados) containerSalgados.innerText = `${totalSalgados} Pratos Salgados 🥐`;
+    if (containerTotalGeral) containerTotalGeral.innerText = `Total Confirmados: ${totalConfirmadosGeral} pessoas 🔥`;
 }
+
+// Inicializa a lista assim que a página terminar de carregar o HTML
+window.addEventListener('DOMContentLoaded', () => {
+    carregarListaPublica();
+});
