@@ -366,8 +366,9 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+}); // <--- O bloco de Ciclo de Vida do DOM fecha exatamente AQUI!
 
-    // Função para copiar a chave PIX com um único clique no celular
+// A FUNÇÃO AGORA FICA SOLTA AQUI FORA, VISÍVEL PARA O BOTÃO DO INDEX.HTML:
 function copiarChavePixRapido() {
     const chavePix = "recepcao@reisfit.com.br";
     
@@ -388,4 +389,3 @@ function copiarChavePixRapido() {
         alert("Não foi possível copiar automaticamente. Use a chave: " + chavePix);
     });
 }
-});
