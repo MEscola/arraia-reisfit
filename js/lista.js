@@ -56,7 +56,7 @@ async function carregarListaPublica() {
                     <div style="flex: 1; min-width: 180px;">
                         <strong style="font-size: 16px; color: #fff; display: block; text-align: left; letter-spacing: 0.3px;">${aluno.nome}</strong>
                         <small style="color: #888; display: block; margin-top: 2px; text-align: left; font-size: 11px;">
-                            👥 Levará <span style="color: #FFC107; font-weight: bold;">${totalPessoasGrupo}</span> ${totalPessoasGrupo === 1 ? 'pessoa' : 'pessoas'} no total
+                            👥 <span style="color: #FFC107; font-weight: bold;">${totalPessoasGrupo}</span> ${totalPessoasGrupo === 1 ? 'pessoa' : 'pessoas'} no total
                         </small>
                     </div>
                     <div style="text-align: right; margin-top: 2px;">
