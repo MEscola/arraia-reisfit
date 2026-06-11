@@ -18,27 +18,25 @@ async function carregarPainelADM() {
         return;
     }
 
-    let caixaRealArrecadado = 0; // Dinheiro REAL que já foi pago
-    let faturamentoTotalPrevisto = 0; // Dinheiro PROMETIDO se todos pagarem
+    let caixaRealArrecadado = 0; 
+    let faturamentoTotalPrevisto = 0; 
     let totalPagantesGeral = 0;
     corpo.innerHTML = '';
     
-    // Processa os dados injetando linhas na tabela e acumulando os totais
     data.forEach(aluno => {
         const valorPixNumerico = Number(aluno.total_pix) || 0;
         const status = aluno.status_pix || 'Pendente';
 
         // 1. CONTABILIDADE SEPARADA:
-        faturamentoTotalPrevisto += valorPixNumerico; // Acumula no Previsto geral
+        faturamentoTotalPrevisto += valorPixNumerico; 
 
         if (status === 'Pago') {
-            caixaRealArrecadado += valorPixNumerico; // Acumula APENAS o dinheiro real na conta
+            caixaRealArrecadado += valorPixNumerico; 
         }
 
-        // 2. Lógica de Negócio para contagem de PAGANTES reais (Cabeças maiores de 13 anos):
+        // 2. Lógica de Negócio para contagem de PAGANTES reais
         let pagantesDestaInscricao = 0;
 
-        // Se o status for Pago ou Pendente (indica que é um fluxo de pagamento normal)
         if (valorPixNumerico > 0) {
             const custoAcompanhantes = ((Number(aluno.qtd_conjuge) || 0) * 15) + ((Number(aluno.qtd_amigos) || 0) * 20);
             
@@ -49,15 +47,13 @@ async function carregarPainelADM() {
             pagantesDestaInscricao += (Number(aluno.qtd_conjuge) || 0);
             pagantesDestaInscricao += (Number(aluno.qtd_amigos) || 0);
         } else if (status.includes("Isenção Titular")) {
-            // Se for patrocinador nível 50, o titular não paga, mas os acompanhantes sim!
             pagantesDestaInscricao += (Number(aluno.qtd_conjuge) || 0);
             pagantesDestaInscricao += (Number(aluno.qtd_amigos) || 0);
         }
 
-        // Acumula no contador geral do Box
         totalPagantesGeral += pagantesDestaInscricao;
 
-        // 3. customização de estilo visual por Linha para evitar alarmes falsos e rádio corredor
+        // 3. Customização de estilo visual por Linha
         const totalPessoasGrupo = 1 + (Number(aluno.qtd_conjuge) || 0) + (Number(aluno.qtd_amigos) || 0);
         
         let estiloLinha = "";
@@ -65,19 +61,21 @@ async function carregarPainelADM() {
         let statusBadge = "";
 
         if (status === 'Pago') {
-            estiloLinha = 'style="background-color: rgba(76, 175, 80, 0.08);"'; // Fundo Verde sutil
+            estiloLinha = 'style="background-color: rgba(76, 175, 80, 0.08);"'; 
             statusBadge = `<span class="badge-pago" style="background:#4CAF50; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">✅ Pago</span>`;
-            acao = `<span style="color:#4CAF50; font-size:12px; font-weight:bold;">Concluído</span>`;
+            acao = `<span style="color:#4CAF50; font-size:12px; font-weight:bold; display:block; margin-bottom:5px;">Concluído</span>`;
         } else if (status.includes("Box Friendly")) {
-            estiloLinha = 'style="background-color: rgba(33, 150, 243, 0.08);"'; // Fundo Azul sutil para parceiros legítimos
+            estiloLinha = 'style="background-color: rgba(33, 150, 243, 0.08);"'; 
             statusBadge = `<span class="badge-parceiro" style="background:#2196F3; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">🤝 Parceiro</span>`;
-            acao = `<button class="btn btn-secondary" style="padding:6px 12px; font-size:11px; width:auto; background:#2196F3;" onclick="confirmarBaixaPix(${aluno.id})">Validar Parceiro</button>`;
+            acao = `<button class="btn btn-secondary" style="padding:6px 12px; font-size:11px; width:auto; background:#2196F3; margin-bottom:5px;" onclick="confirmarBaixaPix(${aluno.id})">Validar</button>`;
         } else {
-            // Se estiver Pendente: coloca o aviso (⚠️) e deixa a linha levemente avermelhada/amarelada
             estiloLinha = 'style="background-color: rgba(255, 152, 0, 0.05);"'; 
             statusBadge = `<span class="badge-pendente" style="background:#FF9800; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">⚠️ Pendente</span>`;
-            acao = `<button class="btn btn-primary" style="padding:6px 12px; font-size:11px; width:auto;" onclick="confirmarBaixaPix(${aluno.id})">Baixa PIX</button>`;
+            acao = `<button class="btn btn-primary" style="padding:6px 12px; font-size:11px; width:auto; margin-bottom:5px;" onclick="confirmarBaixaPix(${aluno.id})">Baixa PIX</button>`;
         }
+
+        // Adiciona o botão discreto de Deletar (Lixeira) embaixo da ação principal
+        acao += `<button class="btn" style="padding:4px 8px; font-size:11px; width:auto; background:#f44336; color:white; border-radius:4px; display:block; margin:0 auto;" onclick="deletarInscricaoadm(${aluno.id}, '${aluno.nome}')">🗑️ Remover</button>`;
 
         corpo.innerHTML += `
             <tr ${estiloLinha}>
@@ -88,12 +86,12 @@ async function carregarPainelADM() {
                 </td>
                 <td>R$ ${valorPixNumerico},00</td>
                 <td><small style="font-size:11px; display:block; line-height:1.2;">${statusBadge}<br><span style="color:#888;">${status}</span></small></td>
-                <td>${acao}</td>
+                <td><div style="text-align:center;">${acao}</div></td>
             </tr>
         `;
     });
 
-    // 4. Atualiza os painéis informativos superiores do ADM dividindo o caixa
+    // 4. Atualiza os painéis informativos superiores
     const containerCaixa = document.getElementById('total-caixa');
     const containerPagantes = document.getElementById('total-pagantes');
 
@@ -120,7 +118,25 @@ async function confirmarBaixaPix(idInscricao) {
     if (error) {
         alert("Falha ao atualizar registro de recebimento: " + error.message);
     } else {
-        // Recarga automática para atualização reativa do faturamento na tela
         carregarPainelADM();
+    }
+}
+
+// NOVA FUNÇÃO: Remove completamente o aluno do banco caso ele desista de ir
+async function deletarInscricaoadm(idInscricao, nomeAluno) {
+    const confirmar = confirm(`⚠️ ATENÇÃO, FINANCEIRO!\n\nTem certeza absoluta que deseja REMOVER o cadastro de "${nomeAluno}"?\n\nEsta ação liberará imediatamente as vagas dos caldos e pratos, e atualizará a lista pública.`);
+    
+    if (!confirmar) return;
+
+    const { error } = await _supabase
+        .from('cadastro_arraia')
+        .delete()
+        .eq('id', idInscricao);
+
+    if (error) {
+        alert("Erro ao tentar excluir registro: " + error.message);
+    } else {
+        alert(`O cadastro de "${nomeAluno}" foi removido com sucesso.`);
+        carregarPainelADM(); // Recarrega o painel reativamente recalculando todo o caixa
     }
 }

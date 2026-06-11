@@ -88,7 +88,16 @@
     <script src="js/adm.js?v=2"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
+            // Verifica silenciosamente se o usuário passou pela validação do index ou da lista
+            const loginValido = sessionStorage.getItem('reisfit_adm_auth');
+
+            if (loginValido === 'token_autorizado_2026') {
+                // Usuário já digitou a senha certa antes, libera o painel direto!
+                const blocoSeguro = document.getElementById('bloco-seguro');
+                if (blocoSeguro) blocoSeguro.classList.add('autorizado');
+                if (typeof carregarPainelADM === 'function') carregarPainelADM();
+            } else {
+                // Se alguém tentar entrar direto pela URL sem digitar a senha, o sistema barra e pede aqui
                 const senhaDigitada = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
                 if (!senhaDigitada) {
                     window.location.href = "index.html?v=2";
@@ -97,7 +106,8 @@
 
                 const senhaTratada = senhaDigitada.toLowerCase().trim();
 
-                if (senhaTratada === "reisfit2026") {
+                if (btoa(senhaTratada) === "cmVpc2ZpdDIwMjY=") {
+                    sessionStorage.setItem('reisfit_adm_auth', 'token_autorizado_2026');
                     const blocoSeguro = document.getElementById('bloco-seguro');
                     if (blocoSeguro) blocoSeguro.classList.add('autorizado');
                     if (typeof carregarPainelADM === 'function') carregarPainelADM();
@@ -105,7 +115,7 @@
                     alert("Senha incorreta!");
                     window.location.href = "index.html?v=2";
                 }
-            }, 200);
+            }
         });
     </script>
 </body>

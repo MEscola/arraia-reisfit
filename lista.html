@@ -41,12 +41,13 @@
     <script src="js/lista.js?v=2"></script>
     <script>
         function verificarAcessoAdmRedirecionamento() {
-            const senhaDigitada = prompt("Digite a senha do Financeiro ADM:");
-            if (!senhaDigitada) return;
+            const senderDigitada = prompt("Digite a senha do Financeiro ADM:");
+            if (!senderDigitada) return;
 
-            const senhaTratada = senhaDigitada.toLowerCase().trim();
+            const senhaTratada = senderDigitada.toLowerCase().trim();
 
-            if (senhaTratada === "reisfit2026") {
+            if (btoa(senhaTratada) === "cmVpc2ZpdDIwMjY=") {
+                sessionStorage.setItem('reisfit_adm_auth', 'token_autorizado_2026');
                 window.location.href = "adm.html?v=2";
             } else {
                 alert("Senha incorreta, acesso negado!");

@@ -168,11 +168,12 @@
             const senhaDigitada = prompt("Digite a senha do Financeiro ADM:");
             if (!senhaDigitada) return;
 
-            // Transforma tudo para minúsculo e remove qualquer espaço
             const senhaTratada = senhaDigitada.toLowerCase().trim();
 
-            // Validação direta sem funções complexas que o navegador possa bloquear
-            if (senhaTratada === "reisfit2026") {
+            // "cmVpc2ZpdDIwMjY=" é a palavra 'reisfit2026' mascarada em Base64
+            if (btoa(senhaTratada) === "cmVpc2ZpdDIwMjY=") {
+                // Guarda o token de sucesso na sessão para o adm.html ler sem pedir senha de novo
+                sessionStorage.setItem('reisfit_adm_auth', 'token_autorizado_2026');
                 window.location.href = "adm.html?v=2";
             } else {
                 alert("Senha incorreta, acesso negado!");
@@ -180,6 +181,5 @@
         }
     </script>
 </body>
-
 </html>
 <!-- Fim do arquivo index.html -->
