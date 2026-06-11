@@ -12,6 +12,10 @@
         #tela-lista {
             display: block;
         }
+        /* Ajuste de distanciamento das bordas da tela para mobile */
+        .container {
+            padding: 15px;
+        }
     </style>
 </head>
 
@@ -23,7 +27,8 @@
 
     <div class="container">
         <section id="tela-lista">
-            <h2 style="color: #FFC107; margin-bottom: 15px;">Lista de Pratos e Convidados 🥐</h2>
+            <!-- MANTIDO O AMARELO ORIGINAL DO ARRAIÁ AQUI: -->
+            <h2 style="color: #FFC107; margin-bottom: 20px; font-weight: 700; letter-spacing: 0.5px;">Lista de Pratos e Convidados 🥐</h2>
             <div id="lista-alunos-container">Carregando dados ...</div>
         </section>
     </div>
@@ -36,8 +41,9 @@
         </div>
     </nav>
 
-    <script src="js/supabase.js?v=4"></script>
-    <script src="js/lista.js?v=4"></script>
+    <!-- Forçando a atualização total de cache com o parâmetro v=6 -->
+    <script src="js/supabase.js?v=6"></script>
+    <script src="js/lista.js?v=6"></script>
     <script>
         function verificarAcessoAdmRedirecionamento() {
             const senhaDigitada = prompt("Digite a senha do Financeiro ADM:");
@@ -49,7 +55,7 @@
 
             if (senhaTratada === senhaCorreta) {
                 sessionStorage.setItem('reisfit_adm_auth', 'autorizado');
-                window.location.href = "adm.html?v=4";
+                window.location.href = "adm.html?v=6";
             } else {
                 alert("Senha incorreta, acesso negado!");
             }
