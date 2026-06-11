@@ -156,24 +156,18 @@
     <script src="js/supabase.js"></script>
     <script src="js/cadastro.js"></script>
     <script>
-        // Função com criptografia para proteger a nova senha minúscula do ADM
-        async function verificarAcessoAdmRedirecionamento() {
+        function verificarAcessoAdmRedirecionamento() {
             const senhaDigitada = prompt("Digite a senha do Financeiro ADM:");
             if (!senhaDigitada) return;
 
-            // Força a entrada ficar em minúsculo para blindar contra o corretor do celular
+            // Transforma tudo para minúsculo e limpa espaços invisíveis
             const senhaTratada = senhaDigitada.toLowerCase().trim();
 
-            // Transforma a senha digitada em um Hash SHA-256
-            const msgBuffer = new TextEncoder().encode(senhaTratada);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            // Técnica de espelhamento para esconder a palavra "reisfit2026" de robôs ou curiosos comuns
+            const senhaSecretaEscondida = "6202tif建设项目".replace("建设项目", "sier"); // Isso reconstrói "6202tifsier"
+            const senhaCorreta = senhaSecretaEscondida.split('').reverse().join(''); // Inverte de volta para "reisfit2026"
 
-            
-            const hashCorreto = "1056f7097746bc5e96646b97e596706e226d9c6e3b2e7208170b021313426e78";
-
-            if (hashHex === hashCorreto) {
+            if (senhaTratada === senhaCorreta) {
                 window.location.href = "adm.html";
             } else {
                 alert("Senha incorreta, acesso negado!");

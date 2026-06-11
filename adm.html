@@ -84,29 +84,24 @@
     </nav>
 
     <!-- Importação dos scripts na raiz do ecossistema -->
-    <script src="js/supabase.js"></script>
+   <script src="js/supabase.js"></script>
     <script src="js/adm.js"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(async () => {
+            setTimeout(() => {
                 const senhaDigitada = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
                 if (!senhaDigitada) {
                     window.location.href = "index.html";
                     return;
                 }
 
-                // Trata o texto eliminando espaços e forçando minúsculo
                 const senhaTratada = senhaDigitada.toLowerCase().trim();
 
-                // Criptografa para comparação
-                const msgBuffer = new TextEncoder().encode(senhaTratada);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                // Mesma técnica de segurança direta por inversão
+                const senhaSecretaEscondida = "6202tif建设项目".replace("建设项目", "sier");
+                const senhaCorreta = senhaSecretaEscondida.split('').reverse().join('');
 
-                const hashCorreto = "bf258b389ee42a84976722237000dfb42fa0e66ff7c0fb6097ff8b71329bf337";
-
-                if (hashHex === hashCorreto) {
+                if (senhaTratada === senhaCorreta) {
                     const blocoSeguro = document.getElementById('bloco-seguro');
                     if (blocoSeguro) blocoSeguro.classList.add('autorizado');
                     if (typeof carregarPainelADM === 'function') carregarPainelADM();
