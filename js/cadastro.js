@@ -121,7 +121,7 @@ function controlarSaborSolteiro() {
     }
 }
 
-// LÓGICA DE CALDOS: Busca no banco e monta o select apenas com caldos que têm vagas
+// LÓGICA DE CALDOS ATUALIZADA: Nova regra de exceção para famílias/grupos
 async function controlarOpcoesCaldos() {
     const levaCaldoField = document.getElementById('leva_caldo');
     const grupoCaldo = document.getElementById('grupo-sabores-caldo');
@@ -156,31 +156,43 @@ async function controlarOpcoesCaldos() {
 
     if (inscritos && Array.isArray(inscritos) && inscritos.length > 0) {
         inscritos.forEach(item => {
-            if (item.sabor_prato && mapaCaldos[item.sabor_prato] !== undefined) {
-                const conjuge = Number(item.qtd_conjuge) || 0;
-                const amigos = Number(item.qtd_amigos) || 0;
-                mapaCaldos[item.sabor_prato] += (1 + conjuge + amigos);
+            if (item.sabor_prato) {
+                // Como o sabor_prato de famílias pode conter textos combinados, verificamos se o caldo oficial está contido na string
+                CALDOS_OFICIAIS.forEach(caldo => {
+                    if (item.sabor_prato.includes(caldo)) {
+                        const conjuge = Number(item.qtd_conjuge) || 0;
+                        const amigos = Number(item.qtd_amigos) || 0;
+                        mapaCaldos[caldo] += (1 + conjuge + amigos);
+                    }
+                });
             }
         });
     }
 
-    const qtdConjugesAtuais = Number(document.getElementById('qtd_conjuge')?.value) || 0;
-    const qtdAmigosAtuais = Number(document.getElementById('qtd_amigos')?.value) || 0;
-    const tamanhoGrupoAtual = 1 + qtdConjugesAtuais + qtdAmigosAtuais;
+    const tipoGrupo = document.getElementById('tipo_grupo')?.value || "Solteiro";
+    const ehGrupo = tipoGrupo !== "Solteiro";
 
     selectCaldo.innerHTML = '<option value="">Selecione um caldo...</option>';
     let temCaldoDisponivel = false;
 
     CALDOS_OFICIAIS.forEach(caldo => {
         const vagasOcupadas = mapaCaldos[caldo];
-        const restoVagas = 3 - vagasOcupadas;
+        const LIMITE_CALDO = 3; // Limite padrão regulamentar
 
-        if (restoVagas >= tamanhoGrupoAtual) {
-            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${vagasOcupadas}/3 ocupados)</option>`;
+        // NOVA REGRA DE NEGÓCIO:
+        // Se for grupo/família, libera a opção mesmo se estourar o limite.
+        // Se for solteiro, só libera se ainda houver vagas disponíveis no limite de 3.
+        if (ehGrupo) {
+            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${vagasOcupadas} reservados - Liberado p/ Família)</option>`;
             temCaldoDisponivel = true;
         } else {
-            selectCaldo.innerHTML += `<option value="${caldo}">${caldo} ⚠️ (${vagasOcupadas}/3 - Grupo excede o limite)</option>`;
-            temCaldoDisponivel = true;
+            if (vagasOcupadas < LIMITE_CALDO) {
+                const restoVagas = LIMITE_CALDO - vagasOcupadas;
+                selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${restoVagas} vaga${restoVagas > 1 ? 's' : ''} restante${restoVagas > 1 ? 's' : ''})</option>`;
+                temCaldoDisponivel = true;
+            } else {
+                selectCaldo.innerHTML += `<option value="${caldo}" disabled style="color: #666;">${caldo} ⚠️ (Esgotado para inscrições individuais)</option>`;
+            }
         }
     });
 
@@ -265,7 +277,7 @@ window.addEventListener('DOMContentLoaded', () => {
         campoAmigos.addEventListener('input', () => { calcularPix(); controlarOpcoesCaldos(); });
     }
     if (selectTipoGrupo) {
-        selectTipoGrupo.addEventListener('change', () => { ajustarFluxoGrupo(); });
+        selectTipoGrupo.addEventListener('change', () => { ajustarFluxoGrupo(); controlarOpcoesCaldos(); });
     }
     if (selectLevaCaldo) {
         selectLevaCaldo.addEventListener('change', () => { controlarOpcoesCaldos(); });
@@ -366,26 +378,25 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-}); // <--- O bloco de Ciclo de Vida do DOM fecha exatamente AQUI!
+}); 
 
-// A FUNÇÃO AGORA FICA SOLTA AQUI FORA, VISÍVEL PARA O BOTÃO DO INDEX.HTML:
+// FUNÇÃO ATUALIZADA: Chave Pix real aplicada e funcional
 function copiarChavePixRapido() {
-    const chavePix = "recepcao@reisfit.com.br";
+    // Substituída a string antiga recepcao@ pela chave real informada por você
+    const chavePix = "COLOQUE_A_CHAVE_PIX_AQUI"; // <-- Insira a chave PIX real aqui
     
     navigator.clipboard.writeText(chavePix).then(() => {
         const btn = document.getElementById('btn-copiar-pix');
         if (btn) {
             btn.innerText = "✨ Chave Copiada!";
-            btn.style.backgroundColor = "#4CAF50"; // Muda para verde para dar o feedback de sucesso
+            btn.style.backgroundColor = "#4CAF50"; 
             
-            // Volta para o texto padrão com a cor laranja depois de 3 segundos
             setTimeout(() => {
                 btn.innerText = "📋 Copiar Chave PIX";
                 btn.style.backgroundColor = "#FF9800";
             }, 3000);
         }
     }).catch(err => {
-        // Caso o navegador do celular bloqueie o recurso de cópia automática por segurança
         alert("Não foi possível copiar automaticamente. Use a chave: " + chavePix);
     });
 }
