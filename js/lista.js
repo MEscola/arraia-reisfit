@@ -5,7 +5,7 @@ async function carregarListaPublica() {
     const containerLista = document.getElementById('lista-alunos-container');
     if (!containerLista) return;
 
-    containerLista.innerHTML = "<p style='color: #aaa; text-align: center; padding: 30px; font-size: 14px;'>Carregando a mesa coletiva... 🥣</p>";
+    containerLista.innerHTML = "<p style='color: #aaa; text-align: center; padding: 30px; font-size: 14px;'>Carregando dados... 🥣</p>";
 
     // Busca os dados no Supabase
     const { data, error } = await _supabase
@@ -15,7 +15,7 @@ async function carregarListaPublica() {
 
     if (error) {
         console.error("Erro ao carregar lista pública:", error);
-        containerLista.innerHTML = "<p style='color: #f44336; text-align: center; padding: 20px;'>⚠️ Erro ao carregar os dados da mesa coletiva.</p>";
+        containerLista.innerHTML = "<p style='color: #f44336; text-align: center; padding: 20px;'>⚠️ Erro ao carregar os dados.</p>";
         return;
     }
 
