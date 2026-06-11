@@ -298,3 +298,8 @@ th {
     color: var(--text-secondary);
     font-weight: 600;
 }
+
+.status-parcial {
+    background-color: #FF9800 !important;
+    color: #ffffff !important;
+}

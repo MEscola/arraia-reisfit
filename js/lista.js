@@ -5,7 +5,7 @@ async function carregarListaPublica() {
     const containerLista = document.getElementById('lista-alunos-container');
     if (!containerLista) return;
 
-    containerLista.innerHTML = "<p style='color: #aaa; text-align: center; padding: 30px; font-size: 14px;'>Carregando dados... 🥣</p>";
+    containerLista.innerHTML = "<p style='color: #aaa; text-align: center; padding: 30px; font-size: 14px;'>Carregando dados...</p>";
 
     // Busca os dados no Supabase
     const { data, error } = await _supabase
@@ -15,12 +15,12 @@ async function carregarListaPublica() {
 
     if (error) {
         console.error("Erro ao carregar lista pública:", error);
-        containerLista.innerHTML = "<p style='color: #f44336; text-align: center; padding: 20px;'>⚠️ Erro ao carregar os dados.</p>";
+        containerLista.innerHTML = "<p style='color: #f44336; text-align: center; padding: 20px;'>Atenção: Erro ao carregar os dados.</p>";
         return;
     }
 
     if (!data || data.length === 0) {
-        containerLista.innerHTML = "<p style='color: #aaa; text-align: center; padding: 40px; font-size: 14px;'>Nenhuma inscrição confirmada até o momento. Seja o primeiro! 🤠</p>";
+        containerLista.innerHTML = "<p style='color: #aaa; text-align: center; padding: 40px; font-size: 14px;'>Nenhuma inscrição realizada até o momento.</p>";
         return;
     }
 
@@ -37,14 +37,17 @@ async function carregarListaPublica() {
         const amigos = Number(aluno.qtd_amigos) || 0;
         const totalPessoasGrupo = 1 + conjuge + amigos;
 
-        // Formatação visual premium do status com fundos translúcidos sutilmente coloridos
+        // Formatação visual premium do status com fundos translúcidos sutilmente coloridos (Sem Emojis)
         let statusBadge = "";
-        if (status === 'Pago') {
-            statusBadge = `<span style="background: rgba(76, 175, 80, 0.12); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.25); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block;">✅ Confirmado</span>`;
-        } else if (status && status.includes("Box Friendly")) {
-            statusBadge = `<span style="background: rgba(33, 150, 243, 0.12); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.25); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block;">🤝 Parceiro</span>`;
+        
+        if (status === 'Confirmado' || status === 'Pago' || status === 'Parceria Confirmada') {
+            statusBadge = `<span style="background: rgba(76, 175, 80, 0.12); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.25); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block;">Confirmado</span>`;
+        } else if (status === 'Parcial' || status.includes('Parcial')) {
+            statusBadge = `<span style="background: rgba(255, 152, 0, 0.12); color: #FF9800; border: 1px solid rgba(255, 152, 0, 0.25); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block;">Pagamento Parcial</span>`;
+        } else if (status.includes("Box Friendly") || status.includes("Parceria")) {
+            statusBadge = `<span style="background: rgba(33, 150, 243, 0.12); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.25); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block;">Parceiro</span>`;
         } else {
-            statusBadge = `<span style="background: rgba(255, 152, 0, 0.08); color: #FF9800; border: 1px solid rgba(255, 152, 0, 0.2); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-style: italic; display: inline-block;">⚠️ Aguardando</span>`;
+            statusBadge = `<span style="background: rgba(239, 83, 80, 0.08); color: #EF5350; border: 1px solid rgba(239, 83, 80, 0.2); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-style: italic; display: inline-block;">Aguardando</span>`;
         }
 
         // HTML Estruturado em blocos verticais (Flex-wrap) para NUNCA embolar no celular
@@ -56,7 +59,7 @@ async function carregarListaPublica() {
                     <div style="flex: 1; min-width: 180px;">
                         <strong style="font-size: 16px; color: #fff; display: block; text-align: left; letter-spacing: 0.3px;">${aluno.nome}</strong>
                         <small style="color: #888; display: block; margin-top: 2px; text-align: left; font-size: 11px;">
-                            👥 <span style="color: #FFC107; font-weight: bold;">${totalPessoasGrupo}</span> ${totalPessoasGrupo === 1 ? 'pessoa' : 'pessoas'} no total
+                            Grupo: <span style="color: #FFC107; font-weight: bold;">${totalPessoasGrupo}</span> ${totalPessoasGrupo === 1 ? 'pessoa' : 'pessoas'} no total
                         </small>
                     </div>
                     <div style="text-align: right; margin-top: 2px;">
@@ -67,10 +70,10 @@ async function carregarListaPublica() {
                 <!-- Caixa Dedicada ao Prato: Isolada abaixo para dar leitura limpa e ampla -->
                 <div style="background: rgba(255, 193, 7, 0.04); border: 1px solid rgba(255, 193, 7, 0.12); padding: 10px 14px; border-radius: 8px; margin-top: 12px;">
                     <small style="color: #FFC107; font-weight: bold; display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px;">
-                        🍴 ${categoria}
+                        ${categoria}
                     </small>
                     <span style="color: #e0e0e0; display: block; font-size: 13px; font-style: italic; word-wrap: break-word; text-align: left;">
-                        ${sabor ? sabor : '<span style="color: #666;">Sabor não especificado</span>'}
+                        ${sabor ? sabor : '<span style="color: #666;">Especificação não informada</span>'}
                     </span>
                 </div>
 

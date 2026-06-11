@@ -98,7 +98,7 @@ function ajustarFluxoGrupo() {
         if (campoSaborSalgadoFamilia) {
             if (levaCaldo) {
                 campoSaborSalgadoFamilia.classList.add('hidden');
-                document.getElementById('sabor_salgado_familia').value = ''; // Limpa se estiver oculto
+                document.getElementById('sabor_salgado_familia').value = ''; 
             } else {
                 campoSaborSalgadoFamilia.classList.remove('hidden');
             }
@@ -121,7 +121,7 @@ function controlarSaborSolteiro() {
     }
 }
 
-// LÓGICA DE CALDOS ATUALIZADA: Nova regra de exceção para famílias/grupos
+// LÓGICA DE CALDOS: Reorganização e contagem baseada no banco de dados
 async function controlarOpcoesCaldos() {
     const levaCaldoField = document.getElementById('leva_caldo');
     const grupoCaldo = document.getElementById('grupo-sabores-caldo');
@@ -129,7 +129,6 @@ async function controlarOpcoesCaldos() {
     
     if (!levaCaldoField || !grupoCaldo || !selectCaldo) return;
 
-    // Dispara a reorganização visual dos pratos reativamente baseada na escolha do caldo
     ajustarFluxoGrupo();
 
     if (levaCaldoField.value === 'Não') {
@@ -147,7 +146,7 @@ async function controlarOpcoesCaldos() {
 
     if (error) {
         console.error("Erro Supabase Caldos:", error);
-        selectCaldo.innerHTML = '<option value="">⚠️ Erro ao carregar o banco</option>';
+        selectCaldo.innerHTML = '<option value="">Erro ao carregar o banco</option>';
         return;
     }
 
@@ -157,7 +156,6 @@ async function controlarOpcoesCaldos() {
     if (inscritos && Array.isArray(inscritos) && inscritos.length > 0) {
         inscritos.forEach(item => {
             if (item.sabor_prato) {
-                // Como o sabor_prato de famílias pode conter textos combinados, verificamos se o caldo oficial está contido na string
                 CALDOS_OFICIAIS.forEach(caldo => {
                     if (item.sabor_prato.includes(caldo)) {
                         const conjuge = Number(item.qtd_conjuge) || 0;
@@ -177,11 +175,8 @@ async function controlarOpcoesCaldos() {
 
     CALDOS_OFICIAIS.forEach(caldo => {
         const vagasOcupadas = mapaCaldos[caldo];
-        const LIMITE_CALDO = 3; // Limite padrão regulamentar
+        const LIMITE_CALDO = 3; 
 
-        // NOVA REGRA DE NEGÓCIO:
-        // Se for grupo/família, libera a opção mesmo se estourar o limite.
-        // Se for solteiro, só libera se ainda houver vagas disponíveis no limite de 3.
         if (ehGrupo) {
             selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${vagasOcupadas} reservados - Liberado p/ Família)</option>`;
             temCaldoDisponivel = true;
@@ -191,17 +186,17 @@ async function controlarOpcoesCaldos() {
                 selectCaldo.innerHTML += `<option value="${caldo}">${caldo} (${restoVagas} vaga${restoVagas > 1 ? 's' : ''} restante${restoVagas > 1 ? 's' : ''})</option>`;
                 temCaldoDisponivel = true;
             } else {
-                selectCaldo.innerHTML += `<option value="${caldo}" disabled style="color: #666;">${caldo} ⚠️ (Esgotado para inscrições individuais)</option>`;
+                selectCaldo.innerHTML += `<option value="${caldo}" disabled style="color: #666;">${caldo} (Esgotado para inscrições individuais)</option>`;
             }
         }
     });
 
     if (!temCaldoDisponivel && selectCaldo.options.length <= 1) {
-        selectCaldo.innerHTML = '<option value="">⚠️ Busque a coordenação para ajustar as vagas dos caldos.</option>';
+        selectCaldo.innerHTML = '<option value="">Busque a coordenação para ajustar as vagas dos caldos.</option>';
     }
 }
 
-// Regra de Negócio Dinâmica: Aplica descontos confidenciais baseados nos tokens de parceria
+// Regra de Negócio Dinâmica: Aplica descontos baseados nos tokens de parceria
 function calcularPix() {
     const patrocinadorCheckbox = document.getElementById('patrocinador');
     const labelPix = document.getElementById('label-pix');
@@ -212,58 +207,47 @@ function calcularPix() {
 
     if (!labelPix) return 0;
 
-    // Valores padrão cobrados de alunos normais
     let entradaTitular = 15;
     let taxaConjuge = 15;
     let taxaAmigo = 20;
 
-    // Se o switch estiver ligado, checa a palavra-chave secreta digitada
     if (patrocinadorCheckbox && patrocinadorCheckbox.checked) {
         const nivel = obterNivelParceria();
 
         if (nivel === "100") {
-            // Isenção TOTAL (Titular e Família inteira zerados)
             entradaTitular = 0;
             taxaConjuge = 0;
             taxaAmigo = 0;
         } else if (nivel === "50") {
-            // Isenção INDIVIDUAL (Apenas o Titular zera)
             entradaTitular = 0;
         }
     }
 
     const total = entradaTitular + (qtdConjuges * taxaConjuge) + (qtdAmigos * taxaAmigo);
-    
-    // Captura o tipo de grupo selecionado na tela de forma correta
     const tipoGrupo = document.getElementById('tipo_grupo')?.value || "Solteiro";
     const nivelParceria = obterNivelParceria();
     
-    // REGRA UNIFICADA: Se deu zero e o switch está ligado, valida os cenários de Isenção
     if (total === 0 && patrocinadorCheckbox && patrocinadorCheckbox.checked) {
-        
         if (nivelParceria === "100" || (nivelParceria === "50" && tipoGrupo === "Solteiro")) {
-            labelPix.innerText = "Parceiro Isento ✨";
-            if (btnCopiar) btnCopiar.classList.add('hidden'); // Esconde o botão se for 100% isento
+            labelPix.innerText = "Parceiro Isento";
+            if (btnCopiar) btnCopiar.classList.add('hidden'); 
         } else {
             labelPix.innerText = `R$ ${total},00`;
-            if (btnCopiar) btnCopiar.classList.remove('hidden'); // Mostra se tiver valor residual
+            if (btnCopiar) btnCopiar.classList.remove('hidden'); 
         }
-
     } else {
-        // Se o valor for maior que zero (ex: aluno comum ou nível 50 com acompanhantes pagantes)
         labelPix.innerText = `R$ ${total},00`;
-        if (btnCopiar) btnCopiar.classList.remove('hidden'); // Garante que o botão aparece para quem precisa pagar
+        if (btnCopiar) btnCopiar.classList.remove('hidden'); 
     }
 
     return total;
 }
 
-// Inicializador Único de Ciclo de Vida: Executa TUDO com proteção após o DOM estar desenhado na tela
+// Inicializador Único de Ciclo de Vida do DOM
 window.addEventListener('DOMContentLoaded', () => {
     ajustarFluxoGrupo();
     calcularPix();
 
-    // DISPARADORES REATIVOS DE INPUT DO LAYOUT APP
     const campoConjuges = document.getElementById('qtd_conjuge');
     const campoAmigos = document.getElementById('qtd_amigos');
     const selectTipoGrupo = document.getElementById('tipo_grupo');
@@ -282,12 +266,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (selectLevaCaldo) {
         selectLevaCaldo.addEventListener('change', () => { controlarOpcoesCaldos(); });
     }
-    // FIX CRÍTICO: Dispara o recálculo do PIX instantaneamente enquanto o usuário digita a palavra chave
     if (inputCodigoParceiro) {
         inputCodigoParceiro.addEventListener('input', () => { validarCodigoParceiro(); });
     }
 
-    // FORMULÁRIO DE ENVIO PARA O BANCO (COM TRAVA DE DUPLICIDADE)
+    // FORMULÁRIO DE ENVIO PARA O BANCO (COM TRAVAS DE NOME COMPOSTO E DUPLICIDADE)
     const formulario = document.getElementById('form-inscricao');
     if (formulario) {
         formulario.addEventListener('submit', async (e) => {
@@ -297,14 +280,25 @@ window.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerText = "Processando inscrição, aguarde...";
 
-            const nomeDigitado = document.getElementById('nome').value.trim();
+            const nomeOriginal = document.getElementById('nome').value;
+            const nomeDigitado = nomeOriginal.trim();
             const tipoGrupo = document.getElementById('tipo_grupo').value;
             const levaCaldo = document.getElementById('leva_caldo').value;
             const saborCaldo = document.getElementById('sabor_caldo').value;
             const qtdConjuges = Number(document.getElementById('qtd_conjuge').value) || 0;
             const qtdAmigos = Number(document.getElementById('qtd_amigos').value) || 0;
 
-            // 1. TRAVA DE DUPLICIDADE: Busca no Supabase se o nome já existe (ignora maiúsculas/minúsculas)
+            // TRAVA 1: EXIGÊNCIA DE NOME COMPOSTO (NOME E SOBRENOME OU APELIDO)
+            const partesDoNome = nomeDigitado.split(/\s+/).filter(part => part.length > 0);
+
+            if (partesDoNome.length < 2) {
+                alert("Atenção!\n\nPor favor, insira o seu Nome e Sobrenome (or seu apelido do Box) para prosseguir.\n\nExemplos: 'Elaine Silva' ou 'Elaine Chocolate'.\n\nIsso evita que seu cadastro seja confundido com homônimos.");
+                btn.disabled = false;
+                btn.innerText = "Confirmar Cadastro";
+                return; 
+            }
+
+            // TRAVA 2: TRAVA DE DUPLICIDADE NO BANCO DE DADOS
             const { data: cadastroExistente, error: errorBusca } = await _supabase
                 .from('cadastro_arraia')
                 .select('id')
@@ -315,13 +309,13 @@ window.addEventListener('DOMContentLoaded', () => {
             }
 
             if (cadastroExistente && cadastroExistente.length > 0) {
-                alert(`⚠️ Atenção!\n\nJá existe uma inscrição cadastrada com o nome "${nomeDigitado}".\n\nPara evitar dados duplicados na contabilidade do caixa, o sistema bloqueou este envio.\n\nCaso precise alterar seu prato ou adicionar acompanhantes, procure a equipe do Financeiro no ADM.`);
+                alert(`Atenção!\n\nJá existe uma inscrição cadastrada com o nome "${nomeDigitado}".\n\nPara evitar dados duplicados na contabilidade do caixa, o sistema bloqueou este envio.\n\nCaso precise alterar seus dados, procure a equipe do Financeiro.`);
                 btn.disabled = false;
                 btn.innerText = "Confirmar Cadastro";
-                return; // Bloqueia o envio aqui
+                return; 
             }
 
-            // 2. Validação padrão do caldo
+            // Validação do caldo
             if (levaCaldo === 'Sim' && !saborCaldo) {
                 alert("Por favor, selecione um sabor de caldo disponível!");
                 btn.disabled = false;
@@ -391,7 +385,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 btn.disabled = false;
                 btn.innerText = "Confirmar Cadastro";
             } else {
-                alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: ${totalPix === 0 && statusPixFinal.includes("Total") ? "Isento ✨" : "R$ " + totalPix + ",00"}\n\nDê uma espiadinha em quem já se inscreveu na lista de participantes!  😉`);
+                alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: ${totalPix === 0 && statusPixFinal.includes("Total") ? "Isento" : "R$ " + totalPix + ",00"}`);
                 formulario.reset();
                 window.location.href = "lista.html"; 
             }
@@ -399,19 +393,18 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 }); 
 
-// FUNÇÃO ATUALIZADA: Chave Pix real aplicada e funcional
+// CHAVE PIX
 function copiarChavePixRapido() {
-    // Quando conseguir a chave com os administradores, basta substituir aqui
     const chavePix = "COLOQUE_A_CHAVE_PIX_AQUI"; 
     
     navigator.clipboard.writeText(chavePix).then(() => {
         const btn = document.getElementById('btn-copiar-pix');
         if (btn) {
-            btn.innerText = "✨ Chave Copiada!";
+            btn.innerText = "Chave Copiada!";
             btn.style.backgroundColor = "#4CAF50"; 
             
             setTimeout(() => {
-                btn.innerText = "📋 Copiar Chave PIX";
+                btn.innerText = "Copiar Chave PIX";
                 btn.style.backgroundColor = "#FF9800";
             }, 3000);
         }

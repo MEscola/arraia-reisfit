@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arraiá ReisFit — Cadastro 🤠🔥</title>
+    <title>Arraiá ReisFit — Cadastro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -16,7 +16,7 @@
     </header>
 
     <div class="container">
-        <h1>🤠 Cadastro</h1>
+        <h1>Cadastro</h1>
 
         <section id="tela-cadastro">
             <form id="form-inscricao">
@@ -25,12 +25,16 @@
                     <div class="form-group">
                         <label for="nome">Qual o seu nome? (Titular)</label>
                         <input type="text" id="nome" required placeholder="Digite seu nome completo">
+                        <!-- Instrução visual obrigatória de Nome e Sobrenome / Apelido -->
+                        <small style="color: #aaa; display: block; margin-top: 4px; font-size: 11px; text-align: left;">
+                            Obrigatório informar nome e sobrenome (ou nome e apelido do Box).
+                        </small>
                     </div>
 
                     <!-- Componente Switch Discreto e Confidencial para a Comunidade -->
                     <div class="sponsor-box">
                         <div class="sponsor-info">
-                            <strong>Sou Box Friendly 🤝</strong>
+                            <strong>Sou Box Friendly</strong>
                             <p>Vou dar uma força extra com as premiações e brindes do nosso bingo.</p>
                         </div>
                         <label class="switch">
@@ -43,17 +47,14 @@
                     <div id="grupo-valor-doacao" class="form-group hidden"
                         style="margin-top: -10px; margin-bottom: 20px; border-left: 3px solid #FFC107; padding-left: 15px;">
                         <div class="form-group" style="margin-bottom: 10px;">
-                            <label for="codigo_parceiro" style="color: #FFC107; font-weight: bold;">Digite o código
-                                confidencial de parceiro:</label>
+                            <label for="codigo_parceiro" style="color: #FFC107; font-weight: bold;">Digite o código confidencial de parceiro:</label>
                             <input type="text" id="codigo_parceiro" placeholder="Digite o código fornecido pelo ADM"
                                 style="border-color: #FFC107;">
                         </div>
                         <div id="aviso-parceiro-valido" class="hidden">
-                            <p style="color: #4CAF50; font-weight: bold; margin: 0 0 5px 0; font-size: 14px;">🤠
-                                Benefício Ativado com Sucesso!</p>
+                            <p style="color: #4CAF50; font-weight: bold; margin: 0 0 5px 0; font-size: 14px;">Benefício Ativado com Sucesso!</p>
                             <small style="color: #bbb; display: block; font-size: 13px; line-height: 1.4;">
-                                Sua credencial de parceiro do Box foi reconhecida. Lembre-se de detalhar abaixo os seus
-                                acompanhantes e os pratos para do Arraiá!
+                                Sua credencial de parceiro do Box foi reconhecida. Lembre-se de detalhar abaixo os seus acompanhantes e os pratos para do Arraiá!
                             </small>
                         </div>
                     </div>
@@ -102,8 +103,8 @@
                             <label for="prato_solteiro">Qual o prato você vai levar?</label>
                             <select id="prato_solteiro" onchange="controlarSaborSolteiro()">
                                 <option value="">Selecione...</option>
-                                <option value="Doce">Prato Doce 🍫</option>
-                                <option value="Salgado">Prato Salgado 🥐</option>
+                                <option value="Doce">Prato Doce</option>
+                                <option value="Salgado">Prato Salgado</option>
                             </select>
                             <div id="grupo-sabor-solteiro" class="form-group hidden" style="margin-top:10px;">
                                 <label for="sabor_prato_solteiro">Especifique o prato que vai trazer:</label>
@@ -113,12 +114,11 @@
 
                         <div id="fluxo-familia" class="hidden">
                             <div class="form-group">
-                                <label for="sabor_doce_familia">Seu Prato Doce 🍫 (Obrigatório):</label>
+                                <label for="sabor_doce_familia">Seu Prato Doce (Obrigatório):</label>
                                 <input type="text" id="sabor_doce_familia" placeholder="Ex: Canjica Doce">
                             </div>
-                            <!-- Ajustado com form-group limpo para o JavaScript conseguir ocultar quando a família trouxer caldo -->
                             <div class="form-group">
-                                <label for="sabor_salgado_familia">Seu Prato Salgado 🥐 (Obrigatório):</label>
+                                <label for="sabor_salgado_familia">Seu Prato Salgado (Obrigatório):</label>
                                 <input type="text" id="sabor_salgado_familia" placeholder="Ex: Empadão">
                             </div>
                         </div>
@@ -127,15 +127,13 @@
 
                 <div class="pix-box">
                     <p>Total do investimento via PIX</p>
-                    <!-- Este valor abaixo muda sozinho e de forma dinâmica enquanto o aluno digita! -->
                     <div class="pix-value" id="label-pix">R$ 15,00</div>
                     <div class="pix-key" style="margin-bottom: 10px;">Chave PIX: INSERIR CHAVE PIX VÁLIDA</div>
 
-                    <!-- Botão de clique rápido que facilita a cópia no celular -->
                     <button type="button" id="btn-copiar-pix" class="btn"
                         style="background: #FF9800; color: white; padding: 8px 15px; font-size: 13px; width: auto; border-radius: 4px; margin: 5px auto 0 auto; display: block;"
                         onclick="copiarChavePixRapido()">
-                        📋 Copiar Chave PIX
+                        Copiar Chave PIX
                     </button>
                 </div>
 
@@ -147,21 +145,21 @@
     <nav>
         <div class="nav-bar">
             <a href="index.html" class="nav-item active">
-                <span class="nav-icon">🔥</span>
+                <span class="nav-icon"></span>
                 <span>Eu VOU!</span>
             </a>
             <a href="lista.html" class="nav-item">
-                <span class="nav-icon">👀</span>
+                <span class="nav-icon"></span>
                 <span>Quem vai?</span>
             </a>
             <a href="#" class="nav-item" onclick="verificarAcessoAdmRedirecionamento()">
-                <span class="nav-icon">🔑</span>
+                <span class="nav-icon"></span>
                 <span>ADM</span>
             </a>
         </div>
     </nav>
 
-   <script src="js/supabase.js?v=3"></script>
+    <script src="js/supabase.js?v=3"></script>
     <script src="js/cadastro.js?v=3"></script>
     <script>
         function verificarAcessoAdmRedirecionamento() {
@@ -169,20 +167,17 @@
             if (!senhaDigitada) return;
 
             const senhaTratada = senhaDigitada.toLowerCase().trim();
-
-            // Desverte a senha "6202tifsier" para comparar com "reisfit2026"
             const senhaMascarada = "6202tifsier";
             const senhaCorreta = senhaMascarada.split('').reverse().join('');
 
             if (senhaTratada === senhaCorreta) {
-                // Salva na memória do navegador que você já logou com sucesso
                 sessionStorage.setItem('reisfit_adm_auth', 'autorizado');
                 window.location.href = "adm.html?v=3";
             } else {
-                alert("Senha incorreta, acesso negado!");
+                alert("Senha incorrecta, acesso negado!");
             }
         }
     </script>
 </body>
+
 </html>
-<!-- Fim do arquivo index.html -->
