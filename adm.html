@@ -67,14 +67,14 @@
 
     <!-- Barra Inferior Mobile Integrada -->
     <nav>
-        <div class="nav-bar">
-            <a href="index.html" class="nav-item">
+       <div class="nav-bar">
+            <a href="index.html" class="nav-item active">
                 <span class="nav-icon">📝</span>
-                <span>Inscrição</span>
+                <span>Eu VOU!</span>
             </a>
             <a href="lista.html" class="nav-item">
-                <span class="nav-icon">🍿</span>
-                <span>Mesa</span>
+                <span class="nav-icon">👀</span>
+                <span>Quem vai?</span>
             </a>
             <a href="adm.html" class="nav-item active">
                 <span class="nav-icon">🔑</span>
@@ -86,28 +86,32 @@
     <!-- Importação dos scripts na raiz do ecossistema -->
     <script src="js/supabase.js"></script>
     <script src="js/adm.js"></script>
-    
     <script>
-        // Correção de concorrência: Executa APENAS quando todo o DOM e os scripts externos carregarem
         window.addEventListener('DOMContentLoaded', () => {
-            // Pequeno atraso estratégico para dar tempo do cliente Supabase injetar as credenciais na memória
-            setTimeout(() => {
-                const senha = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
-                
-                if (senha === "ReisFit2026") {
+            setTimeout(async () => {
+                const senhaDigitada = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
+                if (!senhaDigitada) {
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                // Trata o texto eliminando espaços e forçando minúsculo
+                const senhaTratada = senhaDigitada.toLowerCase().trim();
+
+                // Criptografa para comparação
+                const msgBuffer = new TextEncoder().encode(senhaTratada);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                const hashCorreto = "bf258b389ee42a84976722237000dfb42fa0e66ff7c0fb6097ff8b71329bf337";
+
+                if (hashHex === hashCorreto) {
                     const blocoSeguro = document.getElementById('bloco-seguro');
-                    if (blocoSeguro) {
-                        blocoSeguro.classList.add('autorizado');
-                    }
-                    
-                    // Valida se a função externa do seu js/adm.js está disponível antes de chamá-la
-                    if (typeof carregarPainelADM === 'function') {
-                        carregarPainelADM();
-                    } else {
-                        console.error("Erro: A função 'carregarPainelADM' não foi encontrada no arquivo js/adm.js");
-                    }
+                    if (blocoSeguro) blocoSeguro.classList.add('autorizado');
+                    if (typeof carregarPainelADM === 'function') carregarPainelADM();
                 } else {
-                    alert("Senha incorreta! Redirecionando...");
+                    alert("Senha incorreta!");
                     window.location.href = "index.html";
                 }
             }, 200);
