@@ -161,8 +161,8 @@
         </div>
     </nav>
 
-    <script src="js/supabase.js?v=2"></script>
-    <script src="js/cadastro.js?v=2"></script>
+   <script src="js/supabase.js?v=3"></script>
+    <script src="js/cadastro.js?v=3"></script>
     <script>
         function verificarAcessoAdmRedirecionamento() {
             const senhaDigitada = prompt("Digite a senha do Financeiro ADM:");
@@ -170,11 +170,14 @@
 
             const senhaTratada = senhaDigitada.toLowerCase().trim();
 
-            // "cmVpc2ZpdDIwMjY=" é a palavra 'reisfit2026' mascarada em Base64
-            if (btoa(senhaTratada) === "cmVpc2ZpdDIwMjY=") {
-                // Guarda o token de sucesso na sessão para o adm.html ler sem pedir senha de novo
-                sessionStorage.setItem('reisfit_adm_auth', 'token_autorizado_2026');
-                window.location.href = "adm.html?v=2";
+            // Desverte a senha "6202tifsier" para comparar com "reisfit2026"
+            const senhaMascarada = "6202tifsier";
+            const senhaCorreta = senhaMascarada.split('').reverse().join('');
+
+            if (senhaTratada === senhaCorreta) {
+                // Salva na memória do navegador que você já logou com sucesso
+                sessionStorage.setItem('reisfit_adm_auth', 'autorizado');
+                window.location.href = "adm.html?v=3";
             } else {
                 alert("Senha incorreta, acesso negado!");
             }

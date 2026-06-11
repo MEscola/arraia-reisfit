@@ -84,36 +84,38 @@
     </nav>
 
     <!-- Importação dos scripts na raiz do ecossistema -->
-   <script src="js/supabase.js?v=2"></script>
-    <script src="js/adm.js?v=2"></script>
+   <script src="js/supabase.js?v=3"></script>
+    <script src="js/adm.js?v=3"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            // Verifica silenciosamente se o usuário passou pela validação do index ou da lista
+            // Checa se a memória temporária diz que você já foi autorizada na tela anterior
             const loginValido = sessionStorage.getItem('reisfit_adm_auth');
 
-            if (loginValido === 'token_autorizado_2026') {
-                // Usuário já digitou a senha certa antes, libera o painel direto!
+            if (loginValido === 'autorizado') {
+                // Se sim, libera direto sem pedir nada!
                 const blocoSeguro = document.getElementById('bloco-seguro');
                 if (blocoSeguro) blocoSeguro.classList.add('autorizado');
                 if (typeof carregarPainelADM === 'function') carregarPainelADM();
             } else {
-                // Se alguém tentar entrar direto pela URL sem digitar a senha, o sistema barra e pede aqui
+                // Só pede a senha se você tentar acessar o link direto digitando na barra de endereço
                 const senhaDigitada = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
                 if (!senhaDigitada) {
-                    window.location.href = "index.html?v=2";
+                    window.location.href = "index.html?v=3";
                     return;
                 }
 
                 const senhaTratada = senhaDigitada.toLowerCase().trim();
+                const senhaMascarada = "6202tifsier";
+                const senhaCorreta = senhaMascarada.split('').reverse().join('');
 
-                if (btoa(senhaTratada) === "cmVpc2ZpdDIwMjY=") {
-                    sessionStorage.setItem('reisfit_adm_auth', 'token_autorizado_2026');
+                if (senhaTratada === senhaCorreta) {
+                    sessionStorage.setItem('reisfit_adm_auth', 'autorizado');
                     const blocoSeguro = document.getElementById('bloco-seguro');
                     if (blocoSeguro) blocoSeguro.classList.add('autorizado');
                     if (typeof carregarPainelADM === 'function') carregarPainelADM();
                 } else {
                     alert("Senha incorreta!");
-                    window.location.href = "index.html?v=2";
+                    window.location.href = "index.html?v=3";
                 }
             }
         });
