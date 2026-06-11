@@ -49,7 +49,7 @@ async function carregarPainelADM() {
 
         totalPagantesGeral += pagantesDestaInscricao;
 
-        // 3. Estilização Avançada e Desembolada por Linha
+        // 3. Estilização Avançada por Linha
         const totalPessoasGrupo = 1 + (Number(aluno.qtd_conjuge) || 0) + (Number(aluno.qtd_amigos) || 0);
         
         let estiloLinha = 'style="border-bottom: 1px solid rgba(255,255,255,0.08);"';
@@ -59,7 +59,7 @@ async function carregarPainelADM() {
         if (status === 'Pago') {
             estiloLinha = 'style="background-color: rgba(76, 175, 80, 0.04); border-bottom: 1px solid rgba(255,255,255,0.08);"'; 
             statusBadge = `<span style="background:#4CAF50; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-block; margin-bottom:4px;">✅ Pago</span>`;
-            acao = `<span style="color:#4CAF50; font-size:12px; font-weight:bold; display:block; margin: 4px 0;">Concluído</span>`;
+            acao = `<span style="color:#4CAF50; font-size:12px; font-weight:bold; display:block; margin: 8px 0;">Concluído</span>`;
         } else if (status && status.includes("Box Friendly")) {
             estiloLinha = 'style="background-color: rgba(33, 150, 243, 0.04); border-bottom: 1px solid rgba(255,255,255,0.08);"'; 
             statusBadge = `<span style="background:#2196F3; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-block; margin-bottom:4px;">🤝 Parceiro</span>`;
@@ -70,14 +70,14 @@ async function carregarPainelADM() {
             acao = `<button class="btn btn-primary" style="padding:6px 10px; font-size:11px; width:100%; background:#FF9800; border:none; color:white; border-radius:4px; margin-bottom:6px; font-weight:bold; cursor:pointer;" onclick="confirmarBaixaPix(${aluno.id})">Baixa PIX</button>`;
         }
 
-        // Transforma o objeto aluno em string segura para passar para a função de edição
+        // Transforma o objeto aluno em string segura para o botão editar
         const alunoString = encodeURIComponent(JSON.stringify(aluno));
 
-        // Botões de Ação Secundários (Editar e Remover lado a lado para organizar)
+        // Botões de Ação Secundários (Editar e Remover)
         let acoesSecundarias = `
             <div style="display: flex; gap: 4px; width: 100%; justify-content: center; margin-top: 4px;">
                 <button style="padding:4px 6px; font-size:10px; flex: 1; background:transparent; color:#FFC107; border:1px solid #FFC107; border-radius:4px; cursor:pointer; opacity:0.8;" onclick="ativarEdicaoLinha(${aluno.id}, '${alunoString}')">✏️ Editar</button>
-                <button style="padding:4px 6px; font-size:10px; flex: 1; background:transparent; color:#f44336; border:1px solid #f44336; border-radius:4px; cursor:pointer; opacity:0.7;" onclick="deletarInscricaoADM(${aluno.id}, '${aluno.nome}')">🗑️ Réu</button>
+                <button style="padding:4px 6px; font-size:10px; flex: 1; background:transparent; color:#f44336; border:1px solid #f44336; border-radius:4px; cursor:pointer; opacity:0.7;" onclick="deletarInscricaoADM(${aluno.id}, '${aluno.nome}')">🗑️ Excluir</button>
             </div>
         `;
 
@@ -128,20 +128,19 @@ async function carregarPainelADM() {
     if (containerPagantes) {
         containerPagantes.innerHTML = `
             <div style="font-size: 15px; font-weight: bold; color: #FFC107; padding: 5px; line-height: 1.6;">
-                🏃‍♂️ Total de Pagantes: <span style="font-size: 18px;">${totalPagantesGeral}</span> pessoas
+                💸 Total de Pagantes: <span style="font-size: 18px;">${totalPagantesGeral}</span> pessoas
             </div>
         `;
     }
 }
 
-// NOVA FUNÇÃO: Transforma a linha da tabela em campos de edição inline
-function activarEdicaoLinha(idInscricao, alunoString) {
+// CORREÇÃO DA FUNÇÃO: Nome unificado sem a letra "c" para bater com o onclick do botão
+function ativarEdicaoLinha(idInscricao, alunoString) {
     const aluno = JSON.parse(decodeURIComponent(alunoString));
-    const linha = document.getElementById(`linha-${idInscricao}`);
-    if (!linha) return;
+    const columnLine = document.getElementById(`linha-${idInscricao}`);
+    if (!columnLine) return;
 
-    // Altera o HTML da linha para exibir os inputs com os valores atuais preenchidos
-    linha.innerHTML = `
+    columnLine.innerHTML = `
         <td colspan="2" style="padding: 10px; text-align: left; vertical-align: top;">
             <label style="color:#FFC107; font-size:11px; display:block; margin-bottom:2px;">Nome do Aluno:</label>
             <input type="text" id="edit-nome-${idInscricao}" value="${aluno.nome}" style="width:95%; padding:5px; background:#222; color:#fff; border:1px solid #444; border-radius:4px; margin-bottom:8px;">
@@ -167,14 +166,14 @@ function activarEdicaoLinha(idInscricao, alunoString) {
             <span style="font-size:11px; display:block; margin-top:4px; color:#888;">R$</span>
         </td>
         <td style="padding: 10px; text-align: center; vertical-align: middle;">
-            <button style="padding:6px 10px; font-size:11px; width:100%; background:#4CAF50; border:none; color:white; border-radius:4px; font-weight:bold; margin-bottom:6px; cursor:pointer;" onclick="salvarEdicaoLinha(${idInscricao}, '${aluno.status_pix}')">💾 Salvar</button>
+            <button style="padding:6px 10px; font-size:11px; width:100%; background:#4CAF50; border:none; color:white; border-radius:4px; font-weight:bold; margin-bottom:6px; cursor:pointer;" onclick="salvarEdicaoLinha(${idInscricao})">💾 Salvar</button>
             <button style="padding:4px 8px; font-size:11px; width:100%; background:transparent; color:#aaa; border:1px solid #666; border-radius:4px; cursor:pointer;" onclick="carregarPainelADM()">❌ Cancelar</button>
         </td>
     `;
 }
 
-// NOVA FUNÇÃO: Dispara o comando UPDATE com os novos dados capturados na linha
-async function salvarEdicaoLinha(idInscricao, statusOriginal) {
+// Salva as alterações da edição inline
+async function salvarEdicaoLinha(idInscricao) {
     const novoNome = document.getElementById(`edit-nome-${idInscricao}`)?.value.trim();
     const novaQtdConjuge = Number(document.getElementById(`edit-conjuge-${idInscricao}`)?.value) || 0;
     const novaQtdAmigos = Number(document.getElementById(`edit-amigos-${idInscricao}`)?.value) || 0;
@@ -205,11 +204,11 @@ async function salvarEdicaoLinha(idInscricao, statusOriginal) {
         alert("Erro ao salvar alterações no banco: " + error.message);
     } else {
         alert("Cadastro atualizado com sucesso!");
-        carregarPainelADM(); // Recarrega o painel reajustando os somatórios de caixas
+        carregarPainelADM();
     }
 }
 
-// Executa o comando UPDATE diretamente na linha selecionada via chave primária (ID) para dar baixa
+// Dá baixa no PIX mudando o status para 'Pago'
 async function confirmarBaixaPix(idInscricao) {
     const { error } = await _supabase
         .from('cadastro_arraia')
@@ -223,11 +222,11 @@ async function confirmarBaixaPix(idInscricao) {
     }
 }
 
-// Remove completamente o aluno do banco caso ele desista de ir
+// Remove completamente o aluno do banco (Com o aviso de confirmação reforçado!)
 async function deletarInscricaoADM(idInscricao, nomeAluno) {
-    const confirmar = confirm(`⚠️ ATENÇÃO, FINANCEIRO!\n\nTem certeza absoluta que deseja REMOVER o cadastro de "${nomeAluno}"?\n\nEsta ação liberará imediatamente as vagas dos caldos e pratos, e atualizará a lista pública.`);
+    const confirmar = confirm(`⚠️ ATENÇÃO!\n\nTem certeza absoluta que deseja REMOVER o cadastro de "${nomeAluno}"?\n\nEsta ação liberará imediatamente as vagas dos caldos e pratos, e atualizará a lista pública.`);
     
-    if (!confirmar) return;
+    if (!confirmar) return; // Se clicar em cancelar, interrompe a execução aqui!
 
     const { error } = await _supabase
         .from('cadastro_arraia')

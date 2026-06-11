@@ -67,8 +67,8 @@
 
     <!-- Barra Inferior Mobile Integrada -->
     <nav>
-       <div class="nav-bar">
-            <a href="index.html" class="nav-item active">
+        <div class="nav-bar">
+            <a href="index.html" class="nav-item">
                 <span class="nav-icon">📝</span>
                 <span>Eu VOU!</span>
             </a>
@@ -83,9 +83,9 @@
         </div>
     </nav>
 
-    <!-- Importação dos scripts na raiz do ecossistema -->
-   <script src="js/supabase.js?v=3"></script>
-    <script src="js/adm.js?v=3"></script>
+    <!-- Importação dos scripts com quebra de cache atualizada para v=4 -->
+    <script src="js/supabase.js?v=4"></script>
+    <script src="js/adm.js?v=4"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             // Checa se a memória temporária diz que você já foi autorizada na tela anterior
@@ -100,7 +100,7 @@
                 // Só pede a senha se você tentar acessar o link direto digitando na barra de endereço
                 const senhaDigitada = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
                 if (!senhaDigitada) {
-                    window.location.href = "index.html?v=3";
+                    window.location.href = "index.html?v=4";
                     return;
                 }
 
@@ -115,7 +115,7 @@
                     if (typeof carregarPainelADM === 'function') carregarPainelADM();
                 } else {
                     alert("Senha incorreta!");
-                    window.location.href = "index.html?v=3";
+                    window.location.href = "index.html?v=4";
                 }
             }
         });
