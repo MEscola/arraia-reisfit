@@ -1,38 +1,32 @@
 // js/adm.js
 
-// Executa a carga inicial dos dados assim que a página administrativa carrega
 window.addEventListener('DOMContentLoaded', () => {
     carregarDadosPainelAdmin();
 });
 
 async function carregarDadosPainelAdmin() {
     const tabelaCorpo = document.getElementById('tabela-adm-corpo');
-    const containerAlunos = document.getElementById('caixa-alunos-container');
-    const containerParceiros = document.getElementById('caixa-parceiros-container');
-    const containerPagantes = document.getElementById('total-pagantes');
+    const containerGeral = document.getElementById('total-geral-caixa');
+    const containerPublico = document.getElementById('total-publico-geral');
+    const containerPatrocinios = document.getElementById('total-patrocinios');
 
     if (!tabelaCorpo) return;
 
-    // Busca todos os registros do banco de dados ordenados pelo nome
+    tabelaCorpo.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:#aaa;">Atualizando informações...</td></tr>';
+
     const { data: inscritos, error } = await _supabase
         .from('cadastro_arraia')
         .select('*')
         .order('nome', { ascending: true });
 
     if (error) {
-        console.error("Erro ao carregar dados administrativos:", error);
-        tabelaCorpo.innerHTML = '<tr><td colspan="7">Erro ao carregar dados do banco.</td></tr>';
+        console.error("Erro Supabase ADM:", error);
+        tabelaCorpo.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:#f44336;">Erro ao acessar banco de dados.</td></tr>';
         return;
     }
 
-    // Variáveis de controle financeiro segregado
-    let caixaAlunosArrecadado = 0;
-    let caixaAlunosPendente = 0;
-    
-    let caixaParceirosArrecadado = 0;
-    let caixaParceirosPendente = 0;
-
-    let totalGeralPessoas = 0;
+    let faturamentoPublicoGeral = 0;
+    let faturamentoPatrocinios = 0;
 
     tabelaCorpo.innerHTML = '';
 
@@ -40,162 +34,167 @@ async function carregarDadosPainelAdmin() {
         inscritos.forEach(item => {
             const conjuge = Number(item.qtd_conjuge) || 0;
             const amigos = Number(item.qtd_amigos) || 0;
-            const totalGrupo = 1 + conjuge + amigos;
-            totalGeralPessoas += totalGrupo;
+            const totalPessoas = 1 + conjuge + amigos;
 
-            // Identificação de Parcerias e Isenções
-            const ehParceiro = item.status_pix && item.status_pix.includes("Box Friendly");
-            const isencaoTotal = item.status_pix && item.status_pix.includes("Isenção Total");
-            const isencaoTitular = item.status_pix && item.status_pix.includes("Isenção Titular");
-
-            // Cálculo do Valor Esperado (Regra Base do Evento)
-            let valorEsperadoTitular = 15;
-            let valorEsperadoConjuge = 15;
-            let valorEsperadoAmigo = 20;
-
-            if (ehParceiro) {
-                if (isencaoTotal) {
-                    valorEsperadoTitular = 0;
-                    valorEsperadoConjuge = 0;
-                    valorEsperadoAmigo = 0;
-                } else if (isencaoTitular) {
-                    valorEsperadoTitular = 0;
-                }
-            }
-
-            const custoTotalInscricao = valorEsperadoTitular + (conjuge * valorEsperadoConjuge) + (amigos * valorEsperadoAmigo);
             const valorPagoReal = Number(item.total_pix) || 0;
+            
+            // Identifica se veio do cadastro com a marcação de parceria (Box Friendly)
+            const ehPatrocinador = item.status_pix && item.status_pix.includes("Box Friendly");
 
-            // Determinação reativa do Status de Pagamento (Tratamento de Pagamento Parcial)
-            let statusExibicao = item.status_pix || "Pendente";
-            let classeStatusCss = "status-pendente";
-            let detalheSaldoResidual = "";
-
-            if (ehParceiro) {
-                if (isencaoTotal) {
-                    statusExibicao = "Parceria Isenta";
-                    classeStatusCss = "status-parceiro-isento";
-                } else if (isencaoTitular) {
-                    if (valorPagoReal >= custoTotalInscricao) {
-                        statusExibicao = "Parceria Confirmada";
-                        classeStatusCss = "status-confirmado";
-                    } else if (valorPagoReal > 0 && valorPagoReal < custoTotalInscricao) {
-                        statusExibicao = "Pagamento Parcial";
-                        classeStatusCss = "status-parcial";
-                        detalheSaldoResidual = ` (Falta R$ ${custoTotalInscricao - valorPagoReal},00)`;
-                    } else {
-                        statusExibicao = "Parceiro Pendente Acompanhante";
-                        classeStatusCss = "status-pendente";
-                        detalheSaldoResidual = ` (Falta R$ ${custoTotalInscricao},00)`;
-                    }
-                }
+            // Separação limpa e direta dos caixas no topo da tela
+            if (ehPatrocinador) {
+                faturamentoPatrocinios += valorPagoReal;
             } else {
-                if (statusExibicao === "Confirmado") {
-                    classeStatusCss = "status-confirmado";
-                } else if (statusExibicao === "Parcial" || (valorPagoReal > 0 && valorPagoReal < custoTotalInscricao)) {
-                    statusExibicao = "Pagamento Parcial";
-                    classeStatusCss = "status-parcial";
-                    detalheSaldoResidual = ` (Falta R$ ${custoTotalInscricao - valorPagoReal},00)`;
-                } else {
-                    classeStatusCss = "status-pendente";
-                }
+                faturamentoPublicoGeral += valorPagoReal;
             }
 
-            // Distribuição dos Valores nos Caixas Destinos Correspondentes
-            if (ehParceiro) {
-                caixaParceirosArrecadado += valorPagoReal;
-                if (custoTotalInscricao > valorPagoReal) {
-                    caixaParceirosPendente += (custoTotalInscricao - valorPagoReal);
-                }
-            } else {
-                if (statusExibicao === "Pagamento Parcial") {
-                    caixaAlunosArrecadado += valorPagoReal;
-                    caixaAlunosPendente += (custoTotalInscricao - valorPagoReal);
-                } else if (statusExibicao === "Confirmado") {
-                    caixaAlunosArrecadado += custoTotalInscricao;
-                } else {
-                    caixaAlunosPendente += custoTotalInscricao;
-                }
+            // Definição visual dos Status e Badges para o Administrador
+            let statusTexto = item.status_pix || "Pendente";
+            let estiloBadge = "background: rgba(255, 152, 0, 0.1); color: #FF9800; border: 1px solid rgba(255, 152, 0, 0.2);";
+
+            if (statusTexto === "Confirmado" || statusTexto === "Pago" || statusTexto === "Parceria Confirmada") {
+                statusTexto = "Confirmado";
+                estiloBadge = "background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.2);";
+            } else if (statusTexto === "Parcial" || statusTexto === "Pagamento Parcial") {
+                statusTexto = "Pagamento Parcial";
+                estiloBadge = "background: rgba(255, 87, 34, 0.1); color: #FF5722; border: 1px solid rgba(255, 87, 34, 0.2);";
+            } else if (ehPatrocinador) {
+                statusTexto = "Parceiro";
+                estiloBadge = "background: rgba(33, 150, 243, 0.1); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.2);";
             }
 
-            // Construção das Ações da Tabela sem referências a PIX para Isentos
-            let acoesHtml = "";
-            if (ehParceiro && isencaoTotal) {
-                acoesHtml = `<button onclick="modificarStatusInscricao('${item.id}', 'Parceria Isenta')" class="btn-acao-validar">Validar Registro</button>`;
-            } else if (statusExibicao === "Pagamento Parcial" || statusExibicao.includes("Pendente")) {
-                acoesHtml = `
-                    <button onclick="modificarStatusInscricao('${item.id}', 'Confirmado')" class="btn-acao-confirmar">Confirmar Integral</button>
-                    <button onclick="ativarEdicaoInline('${item.id}')" class="btn-acao-editar">Editar Valor</button>
-                `;
-            } else {
-                acoesHtml = `<button onclick="modificarStatusInscricao('${item.id}', 'Pendente')" class="btn-acao-desfazer">Desfazer</button>`;
-            }
+            const indicadorNome = ehPatrocinador ? `<span style="color: #2196F3; font-size: 11px; display: block; font-weight: normal;">[Box Friendly]</span>` : '';
 
-            // Renderização da Linha na Tabela Administrativa
             tabelaCorpo.innerHTML += `
-                <tr id="linha-${item.id}">
-                    <td><strong>${item.nome}</strong></td>
-                    <td>${item.tipo_grupo} (${totalGrupo} p.)</td>
-                    <td><small>${item.categoria_prato}<br>${item.sabor_prato}</small></td>
-                    <td>R$ ${custoTotalInscricao},00</td>
-                    <td>R$ ${valorPagoReal},00</td>
-                    <td><span class="badge-status ${classeStatusCss}">${statusExibicao}${detalheSaldoResidual}</span></td>
-                    <td>
-                        <div class="bloco-acoes-tabela">
-                            ${acoesHtml}
-                            <button onclick="removerInscricaoComConfirmacao('${item.id}')" class="btn-acao-remover">Excluir</button>
+                <tr id="linha-${item.id}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 12px;" id="celula-nome-${item.id}"><strong>${item.nome}</strong> ${indicadorNome}</td>
+                    <td style="padding: 12px;" id="celula-grupo-${item.id}">${item.tipo_grupo} (${totalPessoas} p.)</td>
+                    <td style="padding: 12px;" id="celula-prato-${item.id}"><small style="color:#bbb;">${item.categoria_prato}<br><span style="color:#888;">${item.sabor_prato}</span></small></td>
+                    <td style="padding: 12px; font-weight: bold;" id="celula-valor-${item.id}">R$ ${valorPagoReal},00</td>
+                    <td style="padding: 12px;"><span class="badge-status" style="padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; ${estiloBadge}">${statusTexto}</span></td>
+                    <td style="padding: 12px; text-align: center;">
+                        <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;" id="acoes-${item.id}">
+                            <button onclick="alterarStatusRapido('${item.id}', '${ehPatrocinador ? 'Parceria Confirmada' : 'Confirmado'}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>
+                            <button onclick="alterarStatusRapido('${item.id}', 'Parcial')" style="background:#FF9800; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Parcial</button>
+                            <button onclick="abrirEdicaoValorManual('${item.id}', ${valorPagoReal})" style="background:#2196F3; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar R$</button>
+                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${item.categoria_prato}', '${item.sabor_prato}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar Dados</button>
+                            <button onclick="deletarInscricao('${item.id}')" style="background:#f44336; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Excluir</button>
                         </div>
                     </td>
                 </tr>
             `;
         });
     } else {
-        tabelaCorpo.innerHTML = '<tr><td colspan="7">Nenhuma inscrição localizada no banco de dados.</td></tr>';
+        tabelaCorpo.innerHTML = '<tr><td colspan="6" style="padding:30px; text-align:center; color:#aaa;">Nenhum registro encontrado.</td></tr>';
     }
 
-    // Atualização dos Painéis de Indicadores com Destinos Separados (adm.html)
-    if (containerAlunos) {
-        containerAlunos.innerHTML = `
-            Valor Arrecadado (Confirmado): <strong>R$ ${caixaAlunosArrecadado},00</strong><br>
-            Valor Pendente (Previsão): R$ ${caixaAlunosPendente},00<br>
-            Total Estimado do Bloco: R$ ${caixaAlunosArrecadado + caixaAlunosPendente},00
-        `;
-    }
-
-    if (containerParceiros) {
-        containerParceiros.innerHTML = `
-            Arrecadado via Taxas Extraordinárias/Parcerias: <strong>R$ ${caixaParceirosArrecadado},00</strong><br>
-            Residual Pendente de Acompanhantes: R$ ${caixaParceirosPendente},00<br>
-            Total Isolado do Bloco: R$ ${caixaParceirosArrecadado + caixaParceirosPendente},00
-        `;
-    }
-
-    if (containerPagantes) {
-        containerPagantes.innerText = `Total Geral de Público Confirmado / Previsto: ${totalGeralPessoas} pessoas`;
-    }
+    // Injeta os totais combinados diretamente nas caixas enxutas do topo
+    if (containerPublico) containerPublico.innerText = `R$ ${faturamentoPublicoGeral},00`;
+    if (containerPatrocinios) containerPatrocinios.innerText = `R$ ${faturamentoPatrocinios},00`;
+    if (containerGeral) containerGeral.innerText = `R$ ${faturamentoPublicoGeral + faturamentoPatrocinios},00`;
 }
 
-// Lógica de Mutação: Atualiza o status do banco de dados via Supabase
-async function modificarStatusInscricao(id, novoStatus) {
+// BOTAO VALIDAR: Confirma o pagamento integral do registro
+async function alterarStatusRapido(id, novoStatus) {
     const { error } = await _supabase
         .from('cadastro_arraia')
         .update({ status_pix: novoStatus })
         .eq('id', id);
 
     if (error) {
-        alert("Erro ao atualizar registro administrativo: " + error.message);
+        alert("Erro ao validar registro: " + error.message);
     } else {
         carregarDadosPainelAdmin();
     }
 }
 
-// Lógica de Remoção Segura com Dupla Confirmação
-async function removerInscricaoComConfirmacao(id) {
-    const confirmacaoPrimeira = confirm("Deseja realmente excluir esta inscrição do banco de dados?");
-    if (!confirmacaoPrimeira) return;
+// BOTAO EDITAR R$: Permite alterar o valor pago manualmente (Alunos ou Patrocinadores)
+function abrirEdicaoValorManual(id, valorAtual) {
+    const celula = document.getElementById(`celula-valor-${id}`);
+    if (!celula) return;
 
-    const confirmacaoSegunda = confirm("Atenção: Esta ação é irreversível e alterará a contabilidade dos caixas. Confirma a exclusão definitiva?");
-    if (!confirmacaoSegunda) return;
+    celula.innerHTML = `
+        <input type="number" id="input-valor-${id}" value="${valorAtual}" style="width:50px; background:#333; color:#fff; border:1px solid #555; padding:4px; border-radius:4px; font-size:12px;">
+        <button onclick="salvarValorManual('${id}')" style="background:#4CAF50; color:#fff; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:2px;">OK</button>
+    `;
+}
+
+async function salvarValorManual(id) {
+    const valorDigitado = Number(document.getElementById(`input-valor-${id}`).value) || 0;
+
+    const { error } = await _supabase
+        .from('cadastro_arraia')
+        .update({ total_pix: valorDigitado })
+        .eq('id', id);
+
+    if (error) {
+        alert("Erro ao salvar valor: " + error.message);
+    } else {
+        carregarDadosPainelAdmin();
+    }
+}
+
+// BOTAO EDITAR DADOS: Abre a edição completa dos dados do cadastro inline
+function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, categoria, sabor) {
+    document.getElementById(`celula-nome-${id}`).innerHTML = `<input type="text" id="edit-nome-${id}" value="${nome}" style="width:100%; background:#333; color:#fff; border:1px solid #555; padding:4px; border-radius:4px; font-size:12px;">`;
+    
+    document.getElementById(`celula-grupo-${id}`).innerHTML = `
+        <select id="edit-grupo-${id}" style="background:#333; color:#fff; border:1px solid #555; padding:4px; border-radius:4px; font-size:12px; margin-bottom:3px;">
+            <option value="Solteiro" ${tipoGrupo === 'Solteiro' ? 'selected' : ''}>Solteiro</option>
+            <option value="Casal/Família" ${tipoGrupo !== 'Solteiro' ? 'selected' : ''}>Família</option>
+        </select>
+        <div style="font-size:11px; color:#aaa;">
+            Cônj: <input type="number" id="edit-conjuge-${id}" value="${conjuge}" style="width:30px; background:#333; color:#fff; border:1px solid #555; padding:2px;">
+            Amig: <input type="number" id="edit-amigos-${id}" value="${amigos}" style="width:30px; background:#333; color:#fff; border:1px solid #555; padding:2px;">
+        </div>
+    `;
+
+    document.getElementById(`celula-prato-${id}`).innerHTML = `
+        <input type="text" id="edit-cat-${id}" value="${categoria}" placeholder="Categoria" style="width:100%; background:#333; color:#fff; border:1px solid #555; padding:4px; border-radius:4px; font-size:11px; margin-bottom:3px;">
+        <input type="text" id="edit-sabor-${id}" value="${sabor}" placeholder="Sabor" style="width:100%; background:#333; color:#fff; border:1px solid #555; padding:4px; border-radius:4px; font-size:11px;">
+    `;
+
+    document.getElementById(`acoes-${id}`).innerHTML = `
+        <button onclick="salvarEdicaoCadastroCompleta('${id}')" style="background:#4CAF50; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">Salvar Alterações</button>
+        <button onclick="carregarDadosPainelAdmin()" style="background:#666; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">Cancelar</button>
+    `;
+}
+
+async function salvarEdicaoCadastroCompleta(id) {
+    const nomeAlt = document.getElementById(`edit-nome-${id}`).value.trim();
+    const grupoAlt = document.getElementById(`edit-grupo-${id}`).value;
+    const conjugeAlt = Number(document.getElementById(`edit-conjuge-${id}`).value) || 0;
+    const amigosAlt = Number(document.getElementById(`edit-amigos-${id}`).value) || 0;
+    const catAlt = document.getElementById(`edit-cat-${id}`).value.trim();
+    const saborAlt = document.getElementById(`edit-sabor-${id}`).value.trim();
+
+    if (!nomeAlt) {
+        alert("O nome não pode ficar em branco.");
+        return;
+    }
+
+    const { error } = await _supabase
+        .from('cadastro_arraia')
+        .update({
+            nome: nomeAlt,
+            tipo_grupo: grupoAlt,
+            qtd_conjuge: conjugeAlt,
+            qtd_amigos: amigosAlt,
+            categoria_prato: catAlt,
+            sabor_prato: saborAlt
+        })
+        .eq('id', id);
+
+    if (error) {
+        alert("Erro ao salvar alterações do cadastro: " + error.message);
+    } else {
+        carregarDadosPainelAdmin();
+    }
+}
+
+// BOTAO EXCLUIR: Remoção direta com caixa de diálogo simples
+async function deletarInscricao(id) {
+    if (!confirm("Tem certeza que deseja excluir em definitivo este cadastro do sistema?")) return;
 
     const { error } = await _supabase
         .from('cadastro_arraia')
@@ -203,36 +202,7 @@ async function removerInscricaoComConfirmacao(id) {
         .eq('id', id);
 
     if (error) {
-        alert("Erro ao remover registro: " + error.message);
-    } else {
-        carregarDadosPainelAdmin();
-    }
-}
-
-// Interface Inline: Permite alterar o valor pago real diretamente na linha da tabela
-function activarEdicaoInline(id) {
-    const linha = document.getElementById(`linha-${id}`);
-    if (!linha) return;
-
-    const célulaValorPago = linha.cells[4];
-    const valorAtual = célulaValorPago.innerText.replace("R$ ", "").replace(",00", "").trim();
-
-    célulaValorPago.innerHTML = `
-        <input type="number" id="input-inline-${id}" value="${valorAtual}" style="width: 70px; padding: 4px; border-radius: 4px; background: #222; color: #fff; border: 1px solid #444;">
-        <button onclick="salvarValorInline('${id}')" style="padding: 4px 8px; font-size: 11px; background: #4CAF50; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-left: 4px;">OK</button>
-    `;
-}
-
-async function salvarValorInline(id) {
-    const novoValor = Number(document.getElementById(`input-inline-${id}`).value) || 0;
-
-    const { error } = await _supabase
-        .from('cadastro_arraia')
-        .update({ total_pix: novoValor, status_pix: 'Parcial' })
-        .eq('id', id);
-
-    if (error) {
-        alert("Erro ao salvar modificação de valor: " + error.message);
+        alert("Erro ao excluir: " + error.message);
     } else {
         carregarDadosPainelAdmin();
     }

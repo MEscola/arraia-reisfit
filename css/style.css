@@ -94,7 +94,7 @@ input:focus, select:focus, textarea:focus {
     border-color: var(--accent-color);
 }
 
-/* Estilo elegante do Patrocinador */
+/* Estilo do Patrocinador */
 .sponsor-box {
     background: rgba(255, 183, 3, 0.05);
     border: 1px dashed rgba(255, 183, 3, 0.3);
@@ -121,7 +121,7 @@ input:focus, select:focus, textarea:focus {
     font-size: 14px;
 }
 
-/* O Componente Toggle Switch */
+/* Componente Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
@@ -299,7 +299,78 @@ th {
     font-weight: 600;
 }
 
+/* ==========================================================================
+   ESTILOS ADICIONAIS: PAINEL ADM E BADGES DE STATUS (COM SUPORTE A EMOJIS)
+   ========================================================================== */
+
+/* Badges de Status Translúcidos e Otimizados para Mobile */
+.badge-status, .badge-lista {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.status-confirmado {
+    background: rgba(76, 175, 80, 0.12) !important;
+    color: #4CAF50 !important;
+    border: 1px solid rgba(76, 175, 80, 0.25);
+}
+
 .status-parcial {
-    background-color: #FF9800 !important;
-    color: #ffffff !important;
+    background: rgba(255, 87, 34, 0.12) !important;
+    color: #FF5722 !important;
+    border: 1px solid rgba(255, 87, 34, 0.25);
+}
+
+.status-parceiro-isento, .status-patrocinador {
+    background: rgba(33, 150, 243, 0.12) !important;
+    color: #2196F3 !important;
+    border: 1px solid rgba(33, 150, 243, 0.25);
+}
+
+.status-pendente {
+    background: rgba(255, 152, 0, 0.08) !important;
+    color: #FF9800 !important;
+    border: 1px solid rgba(255, 152, 0, 0.2);
+}
+
+/* Estilo dos Botões de Ação na Tabela do ADM */
+#tabela-adm-corpo button {
+    font-weight: bold;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+#tabela-adm-corpo button:hover {
+    opacity: 0.9;
+}
+
+/* Ajustes para Inputs InLine na tabela durante a edição */
+#tabela-adm-corpo input[type="number"] {
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+#tabela-adm-corpo input[type="number"]::-webkit-outer-spin-button,
+#tabela-adm-corpo input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Animação de clique rápido nos Cards do Caixa no topo */
+.painel-valores-adm div {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.1s;
+}
+
+.painel-valores-adm div:active {
+    transform: scale(0.97);
 }
