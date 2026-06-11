@@ -287,7 +287,7 @@ window.addEventListener('DOMContentLoaded', () => {
         inputCodigoParceiro.addEventListener('input', () => { validarCodigoParceiro(); });
     }
 
-    // FORMULÁRIO DE ENVIO PARA O BANCO
+    // FORMULÁRIO DE ENVIO PARA O BANCO (COM TRAVA DE DUPLICIDADE)
     const formulario = document.getElementById('form-inscricao');
     if (formulario) {
         formulario.addEventListener('submit', async (e) => {
@@ -297,12 +297,31 @@ window.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerText = "Processando inscrição, aguarde...";
 
+            const nomeDigitado = document.getElementById('nome').value.trim();
             const tipoGrupo = document.getElementById('tipo_grupo').value;
             const levaCaldo = document.getElementById('leva_caldo').value;
             const saborCaldo = document.getElementById('sabor_caldo').value;
             const qtdConjuges = Number(document.getElementById('qtd_conjuge').value) || 0;
             const qtdAmigos = Number(document.getElementById('qtd_amigos').value) || 0;
 
+            // 1. TRAVA DE DUPLICIDADE: Busca no Supabase se o nome já existe (ignora maiúsculas/minúsculas)
+            const { data: cadastroExistente, error: errorBusca } = await _supabase
+                .from('cadastro_arraia')
+                .select('id')
+                .ilike('nome', nomeDigitado);
+
+            if (errorBusca) {
+                console.error("Erro ao verificar duplicidade:", errorBusca);
+            }
+
+            if (cadastroExistente && cadastroExistente.length > 0) {
+                alert(`⚠️ Atenção!\n\nJá existe uma inscrição cadastrada com o nome "${nomeDigitado}".\n\nPara evitar dados duplicados na contabilidade do caixa, o sistema bloqueou este envio.\n\nCaso precise alterar seu prato ou adicionar acompanhantes, procure a equipe do Financeiro no ADM.`);
+                btn.disabled = false;
+                btn.innerText = "Confirmar Cadastro";
+                return; // Bloqueia o envio aqui
+            }
+
+            // 2. Validação padrão do caldo
             if (levaCaldo === 'Sim' && !saborCaldo) {
                 alert("Por favor, selecione um sabor de caldo disponível!");
                 btn.disabled = false;
@@ -353,7 +372,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
 
             const payload = {
-                nome: document.getElementById('nome').value,
+                nome: nomeDigitado,
                 tipo_grupo: tipoGrupo,
                 qtd_conjuge: qtdConjuges,
                 qtd_amigos: qtdAmigos,
@@ -382,8 +401,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // FUNÇÃO ATUALIZADA: Chave Pix real aplicada e funcional
 function copiarChavePixRapido() {
-    // Substituída a string antiga recepcao@ pela chave real informada por você
-    const chavePix = "COLOQUE_A_CHAVE_PIX_AQUI"; // <-- Insira a chave PIX real aqui
+    // Quando conseguir a chave com os administradores, basta substituir aqui
+    const chavePix = "COLOQUE_A_CHAVE_PIX_AQUI"; 
     
     navigator.clipboard.writeText(chavePix).then(() => {
         const btn = document.getElementById('btn-copiar-pix');
