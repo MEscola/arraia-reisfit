@@ -46,7 +46,7 @@ async function carregarPainelADM() {
             
             pagantesDestaInscricao += (Number(aluno.qtd_conjuge) || 0);
             pagantesDestaInscricao += (Number(aluno.qtd_amigos) || 0);
-        } else if (status.includes("Isenção Titular")) {
+        } else if (status && status.includes("Isenção Titular")) {
             pagantesDestaInscricao += (Number(aluno.qtd_conjuge) || 0);
             pagantesDestaInscricao += (Number(aluno.qtd_amigos) || 0);
         }
@@ -64,7 +64,7 @@ async function carregarPainelADM() {
             estiloLinha = 'style="background-color: rgba(76, 175, 80, 0.08);"'; 
             statusBadge = `<span class="badge-pago" style="background:#4CAF50; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">✅ Pago</span>`;
             acao = `<span style="color:#4CAF50; font-size:12px; font-weight:bold; display:block; margin-bottom:5px;">Concluído</span>`;
-        } else if (status.includes("Box Friendly")) {
+        } else if (status && status.includes("Box Friendly")) {
             estiloLinha = 'style="background-color: rgba(33, 150, 243, 0.08);"'; 
             statusBadge = `<span class="badge-parceiro" style="background:#2196F3; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">🤝 Parceiro</span>`;
             acao = `<button class="btn btn-secondary" style="padding:6px 12px; font-size:11px; width:auto; background:#2196F3; margin-bottom:5px;" onclick="confirmarBaixaPix(${aluno.id})">Validar</button>`;
@@ -74,8 +74,8 @@ async function carregarPainelADM() {
             acao = `<button class="btn btn-primary" style="padding:6px 12px; font-size:11px; width:auto; margin-bottom:5px;" onclick="confirmarBaixaPix(${aluno.id})">Baixa PIX</button>`;
         }
 
-        // Adiciona o botão discreto de Deletar (Lixeira) embaixo da ação principal
-        acao += `<button class="btn" style="padding:4px 8px; font-size:11px; width:auto; background:#f44336; color:white; border-radius:4px; display:block; margin:0 auto;" onclick="deletarInscricaoadm(${aluno.id}, '${aluno.nome}')">🗑️ Remover</button>`;
+        // CORREÇÃO AQUI: Ajustado para "deletarInscricaoADM" combinando perfeitamente com a função lá de baixo
+        acao += `<button class="btn" style="padding:4px 8px; font-size:11px; width:auto; background:#f44336; color:white; border-radius:4px; display:block; margin:0 auto;" onclick="deletarInscricaoADM(${aluno.id}, '${aluno.nome}')">🗑️ Remover</button>`;
 
         corpo.innerHTML += `
             <tr ${estiloLinha}>
@@ -122,8 +122,8 @@ async function confirmarBaixaPix(idInscricao) {
     }
 }
 
-// NOVA FUNÇÃO: Remove completamente o aluno do banco caso ele desista de ir
-async function deletarInscricaoadm(idInscricao, nomeAluno) {
+// FUNÇÃO AJUSTADA: Nome unificado como deletarInscricaoADM para evitar erros de referência
+async function deletarInscricaoADM(idInscricao, nomeAluno) {
     const confirmar = confirm(`⚠️ ATENÇÃO, FINANCEIRO!\n\nTem certeza absoluta que deseja REMOVER o cadastro de "${nomeAluno}"?\n\nEsta ação liberará imediatamente as vagas dos caldos e pratos, e atualizará a lista pública.`);
     
     if (!confirmar) return;
@@ -137,6 +137,6 @@ async function deletarInscricaoadm(idInscricao, nomeAluno) {
         alert("Erro ao tentar excluir registro: " + error.message);
     } else {
         alert(`O cadastro de "${nomeAluno}" foi removido com sucesso.`);
-        carregarPainelADM(); // Recarrega o painel reativamente recalculando todo o caixa
+        carregarPainelADM(); 
     }
 }

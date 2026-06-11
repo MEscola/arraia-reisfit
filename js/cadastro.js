@@ -360,7 +360,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 btn.disabled = false;
                 btn.innerText = "Confirmar Cadastro";
             } else {
-                alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: ${totalPix === 0 && statusPixFinal.includes("Total") ? "Isento ✨" : "R$ " + totalPix + ",00"}\n\nAcompanhe a evolução da mesa coletiva na próxima tela!`);
+                alert(`Sucesso!\n\nSeu cadastro foi enviado com sucesso!\n\nValor total para pagamento via PIX: ${totalPix === 0 && statusPixFinal.includes("Total") ? "Isento ✨" : "R$ " + totalPix + ",00"}\n\nDê uma espiadinha em quem já se inscreveu na lista de participantes!  😉`);
                 formulario.reset();
                 window.location.href = "lista.html"; 
             }
