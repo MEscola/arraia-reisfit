@@ -58,12 +58,12 @@ async function carregarDadosPainelAdmin() {
             let valorInscricaoCalculada = 0;
             if (ehParceiro) {
                 if (ehParceiro100) {
-                    valorInscricaoCalculada = 0;
+                    valorInscricaoCalculada = 0; // Isenção Total: todos da linha saem de graça
                 } else {
-                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
+                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Isenção Titular: apenas acompanhantes pagam
                 }
             } else {
-                valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20);
+                valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20); // Aluno comum
             }
 
             // 2. ISOLA A DOAÇÃO PURA DO PARCEIRO
@@ -90,7 +90,7 @@ async function carregarDadosPainelAdmin() {
                 estiloBadge = "background: rgba(255, 87, 34, 0.1); color: #FF5722; border: 1px solid rgba(255, 87, 34, 0.2);";
             }
 
-            // BOTÃO DINÂMICO
+            // BOTÃO DINÂMICO: Preserva o subgrupo (50 ou 100) ao desfazer ou validar
             let botaoAcaoStatusHTML = "";
             if (estaValidado) {
                 let statusAoDesfazer = 'Pendente';
@@ -148,7 +148,7 @@ async function carregarDadosPainelAdmin() {
                     <td style="padding: 12px; text-align: center; vertical-align: top;">
                         <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;" id="acoes-${item.id}">
                             ${botaoAcaoStatusHTML}
-                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${item.prato_salgado || ''}', '${item.prato_doce || ''}', '${statusAtual}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
+                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${item.sabor_prato || ''}', '${statusAtual}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
                             <button onclick="deletarInscricao('${item.id}')" style="background:#f44336; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Excluir</button>
                         </div>
                     </td>
@@ -221,6 +221,7 @@ async function salvarDoacaoParceiro(id) {
         if (celulaNome.innerText.includes('50')) eh50 = true;
     }
 
+    // Se o valor digitado for 0 ou vazio, redefine para o status correto pendente correspondente
     let novoStatusPix = '';
     if (valorDoado === 0) {
         if (eh100) novoStatusPix = 'Box Friendly (Isenção Total)';
@@ -244,21 +245,35 @@ async function salvarDoacaoParceiro(id) {
     }
 }
 
-function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, pratoSalgado, pratoDoce, statusAtual) {
+function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, saborPrato, statusAtual) {
     const celulaNome = document.getElementById(`celula-nome-${id}`);
     if (!celulaNome) return;
 
-    // Detecta o tipo de parceria atual para deixar o <select> marcado certinho
+    // Detecta o tipo de parceria atual para deixar o select marcado certinho
     let tipoParceriaAtual = "comum";
     if (statusAtual.includes("100")) tipoParceriaAtual = "100";
     else if (statusAtual.includes("Box Friendly") || statusAtual.includes("50") || statusAtual.includes("Parceiro")) tipoParceriaAtual = "50";
+
+    // Extrai os sabores se já existirem no banco separados por '|'
+    let doceAtual = "";
+    let salgadoAtual = "";
+    if (saborPrato.includes("|")) {
+        const partes = saborPrato.split("|");
+        doceAtual = partes[0].replace("Doce:", "").trim();
+        salgadoAtual = partes[1].replace("Salgado:", "").trim();
+    } else if (saborPrato.includes("Salgado:")) {
+        salgadoAtual = saborPrato.replace("Salgado:", "").trim();
+    } else if (saborPrato.includes("Doce:")) {
+        doceAtual = saborPrato.replace("Doce:", "").trim();
+    } else if (saborPrato !== "Não especificado") {
+        salgadoAtual = saborPrato; // Fallback caso seja texto puro antigo
+    }
 
     celulaNome.innerHTML = `
         <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; border: 1px solid #555; width: 100%; box-sizing: border-box;">
             <span style="font-size:10px; color:#00BCD4; font-weight:bold; display:block; margin-bottom:2px;">NOME DO PARTICIPANTE:</span>
             <input type="text" id="edit-nome-${id}" value="${nome}" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
             
-            <!-- NOVO CAMPO: CORREÇÃO DE PARCERIA TRAVADA -->
             <span style="font-size:10px; color:#00BCD4; font-weight:bold; display:block; margin-bottom:2px;">CATEGORIA / PARCERIA:</span>
             <select id="edit-parceria-${id}" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
                 <option value="comum" ${tipoParceriaAtual === 'comum' ? 'selected' : ''}>Aluno Comum</option>
@@ -284,10 +299,10 @@ function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, prato
             </div>
 
             <span style="font-size:10px; color:#4CAF50; font-weight:bold; display:block; margin-bottom:2px;">PRATO SALGADO:</span>
-            <input type="text" id="edit-salhado-${id}" value="${pratoSalgado}" placeholder="Ex: Coxinha, Empadão" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
+            <input type="text" id="edit-salhado-${id}" value="${salgadoAtual}" placeholder="Ex: Coxinha, Empadão" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
 
             <span style="font-size:10px; color:#4CAF50; font-weight:bold; display:block; margin-bottom:2px;">PRATO DOCE:</span>
-            <input type="text" id="edit-doce-${id}" value="${pratoDoce}" placeholder="Ex: Canjica, Pé de Moleque" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; box-sizing: border-box;">
+            <input type="text" id="edit-doce-${id}" value="${doceAtual}" placeholder="Ex: Canjica, Pé de Moleque" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; box-sizing: border-box;">
         </div>
     `;
 
@@ -316,6 +331,20 @@ async function salvarEdicaoCadastroCompleta(id) {
     if (parceriaAlt === "100") novoStatusFinal = "Box Friendly (Isenção Total)";
     else if (parceriaAlt === "50") novoStatusFinal = "Box Friendly (Isenção Titular)";
 
+    // Formata a string de prato combinando ambos os campos de acordo com a estrutura oficial
+    let saborFinal = "";
+    if (salgadoAlt && doceAlt) {
+        saborFinal = `Doce: ${doceAlt} | Salgado: ${salgadoAlt}`;
+    } else if (salgadoAlt) {
+        saborFinal = `Salgado: ${salgadoAlt}`;
+    } else if (doceAlt) {
+        saborFinal = `Doce: ${doceAlt}`;
+    } else {
+        saborFinal = "Não especificado";
+    }
+
+    let categoryFinal = grupoAlt === "Solteiro" ? "Editado (Individual)" : "Doce e Salgado 🍫🥐";
+
     const { error } = await _supabase
         .from('cadastro_arraia')
         .update({
@@ -323,9 +352,9 @@ async function salvarEdicaoCadastroCompleta(id) {
             tipo_grupo: grupoAlt,
             qtd_conjuge: conjugeAlt,
             qtd_amigos: amigosAlt,
-            prato_salgado: salgadoAlt,
-            prato_doce: doceAlt,
-            status_pix: novoStatusFinal // Atualiza a parceria forçadamente para corrigir erros
+            categoria_prato: categoryFinal, // Nome correto da coluna corrigido
+            sabor_prato: saborFinal,         // Nome correto da coluna corrigido
+            status_pix: novoStatusFinal 
         })
         .eq('id', id);
 
