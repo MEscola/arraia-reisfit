@@ -395,7 +395,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // CHAVE PIX
 function copiarChavePixRapido() {
-    const chavePix = "COLOQUE_A_CHAVE_PIX_AQUI"; 
+    const chavePix = "8f0e4da5-ac90-4161-89c4-30d07dc16cbf"; 
     
     navigator.clipboard.writeText(chavePix).then(() => {
         const btn = document.getElementById('btn-copiar-pix');
