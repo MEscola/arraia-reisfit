@@ -44,24 +44,34 @@ async function carregarDadosPainelAdmin() {
             
             totalPessoasGeral += totalPessoasLinha;
 
-            const ehParceiro = item.status_pix && (item.status_pix.includes("Box Friendly") || item.status_pix.includes("Parceria") || item.status_pix.includes("Parceiro"));
             const statusAtual = item.status_pix || "Pendente";
             
-            // Constante para verificar se a linha atual possui o pagamento validado
+            // INTEGRAÇÃO COM CADASTRO.JS: Verifica se é um parceiro pelos termos salvos no formulário
+            const ehParceiro = statusAtual.includes("Box Friendly") || statusAtual.includes("Parceria") || statusAtual.includes("Parceiro");
+            const ehParceiro100 = statusAtual.includes("Isenção Total") || statusAtual.includes("100");
+            const ehParceiro50 = statusAtual.includes("Isenção Titular") || statusAtual.includes("50");
+
+            // Verifica se a linha atual possui o pagamento validado/pago
             const estaValidado = statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual.includes("Pago");
 
-            // 1. CÁLCULO DE INSCRIÇÃO INDEPENDENTE DO STATUS
+            // 1. CÁLCULO DE INSCRIÇÃO BASEADO NAS REGRAS OFICIAIS DE ISENÇÃO
             let valorInscricaoCalculada = 0;
             if (ehParceiro) {
-                valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Titular parceiro é isento
+                if (ehParceiro100) {
+                    valorInscricaoCalculada = 0; // Isenção total: Todos da linha saem de graça
+                } else if (ehParceiro50) {
+                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Isenção Titular: Apenas acompanhantes pagam
+                } else {
+                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Caso genérico (padrão isenção titular)
+                }
             } else {
-                valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20); // Aluno comum
+                valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20); // Aluno comum comum
             }
 
             // 2. ISOLA A DOAÇÃO PURA DO PARCEIRO
             const valorDoacaoPura = ehParceiro ? (Number(item.total_pix) || 0) : 0;
 
-            // REGRA DE SOMA: Só adiciona aos totais se estiver validado/pago
+            // REGRA DE SOMA: Só adiciona aos totais financeiros se estiver validado/pago pelo botão "Validar"
             if (estaValidado) {
                 totalPessoasPagas += totalPessoasLinha;
                 faturamentoPublicoGeral += valorInscricaoCalculada;
@@ -82,12 +92,24 @@ async function carregarDadosPainelAdmin() {
                 estiloBadge = "background: rgba(255, 87, 34, 0.1); color: #FF5722; border: 1px solid rgba(255, 87, 34, 0.2);";
             }
 
-            // BOTÃO DINÂMICO: Altera de Validar para Desfazer conforme o status atual do banco
+            // BOTÃO DINÂMICO INTELEGENTE: Preserva o status do cadastro original ao validar e ao desfazer
             let botaoAcaoStatusHTML = "";
             if (estaValidado) {
-                botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', 'Pendente')" style="background:#555; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Desfazer</button>`;
+                let statusAoDesfazer = 'Pendente';
+                if (ehParceiro) {
+                    if (ehParceiro100) statusAoDesfazer = 'Box Friendly (Isenção Total)';
+                    else if (ehParceiro50) statusAoDesfazer = 'Box Friendly (Isenção Titular)';
+                    else statusAoDesfazer = 'Pendente (Parceiro)';
+                }
+                botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', '${statusAoDesfazer}')" style="background:#555; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Desfazer</button>`;
             } else {
-                botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', '${ehParceiro ? 'Pago (Parceiro)' : 'Pago'}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>`;
+                let statusAoValidar = 'Pago';
+                if (ehParceiro) {
+                    if (ehParceiro100) statusAoValidar = 'Pago (Parceiro 100)';
+                    else if (ehParceiro50) statusAoValidar = 'Pago (Parceiro 50)';
+                    else statusAoValidar = 'Pago (Parceiro)';
+                }
+                botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', '${statusAoValidar}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>`;
             }
 
             let celulaValorHTML = "";
@@ -106,7 +128,12 @@ async function carregarDadosPainelAdmin() {
                 celulaValorHTML = `<td style="padding: 12px; font-weight: bold; color: #fff; white-space: nowrap; vertical-align: top;">R$ ${valorInscricaoCalculada},00</td>`;
             }
 
-            const nomeExibicao = ehParceiro ? `<strong>${item.nome}</strong> <span style="color: #00BCD4; font-size: 11px;">(Parceiro)</span>` : `<strong>${item.nome}</strong>`;
+            // Exibe o rótulo amigável no painel administrativo
+            let rotuloParceiro = "(Parceiro)";
+            if (ehParceiro100) rotuloParceiro = "(Parceiro 100)";
+            else if (ehParceiro50) rotuloParceiro = "(Parceiro 50)";
+            
+            const nomeExibicao = ehParceiro ? `<strong>${item.nome}</strong> <span style="color: #00BCD4; font-size: 11px;">${rotuloParceiro}</span>` : `<strong>${item.nome}</strong>`;
 
             tabelaCorpo.innerHTML += `
                 <tr id="linha-${item.id}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -187,9 +214,16 @@ function abrirCaixinhaDoacaoAbaixo(id, doacaoAtual) {
 async function salvarDoacaoParceiro(id) {
     const valorDoado = Number(document.getElementById(`input-doacao-${id}`).value) || 0;
 
+    const celulaNome = document.getElementById(`celula-nome-${id}`);
+    let tipoParceria = '';
+    if (celulaNome) {
+        if (celulaNome.innerText.includes('100')) tipoParceria = ' 100';
+        else if (celulaNome.innerText.includes('50')) tipoParceria = ' 50';
+    }
+
     const { error } = await _supabase
         .from('cadastro_arraia')
-        .update({ total_pix: valorDoado, status_pix: 'Pago (Parceiro)' })
+        .update({ total_pix: valorDoado, status_pix: `Pago (Parceiro${tipoParceria})` })
         .eq('id', id);
 
     if (error) {
