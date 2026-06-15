@@ -10,7 +10,7 @@ function carregarPainelADM() {
 
 async function carregarDadosPainelAdmin() {
     const tabelaCorpo = document.getElementById('tabela-adm-corpo');
-    const containerGeral = document.getElementById('total-geral-caixa');
+    const containerGeral = document.getElementById('total-general-caixa');
     const containerPublico = document.getElementById('total-publico-geral');
     const containerPatrocinios = document.getElementById('total-patrocinios');
 
@@ -58,9 +58,9 @@ async function carregarDadosPainelAdmin() {
             let valorInscricaoCalculada = 0;
             if (ehParceiro) {
                 if (ehParceiro100) {
-                    valorInscricaoCalculada = 0; // Isenção Total: todos da linha saem de graça
+                    valorInscricaoCalculada = 0; // Isenção Total
                 } else {
-                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Isenção Titular: apenas acompanhantes pagam
+                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Isenção Titular
                 }
             } else {
                 valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20); // Aluno comum
@@ -90,7 +90,7 @@ async function carregarDadosPainelAdmin() {
                 estiloBadge = "background: rgba(255, 87, 34, 0.1); color: #FF5722; border: 1px solid rgba(255, 87, 34, 0.2);";
             }
 
-            // BOTÃO DINÂMICO: Preserva o subgrupo (50 ou 100) ao desfazer ou validar
+            // BOTÃO DINÂMICO
             let botaoAcaoStatusHTML = "";
             if (estaValidado) {
                 let statusAoDesfazer = 'Pendente';
@@ -133,6 +133,9 @@ async function carregarDadosPainelAdmin() {
             
             const nomeExibicao = `<strong>${item.nome}</strong>${rotuloParceiro}`;
 
+            // Passa explicitamente a string do sabor_prato para a renderização do formulário interno de edição
+            const saborSeguro = item.sabor_prato || "";
+
             tabelaCorpo.innerHTML += `
                 <tr id="linha-${item.id}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td style="padding: 12px; vertical-align: top;" id="celula-nome-${item.id}">
@@ -148,7 +151,7 @@ async function carregarDadosPainelAdmin() {
                     <td style="padding: 12px; text-align: center; vertical-align: top;">
                         <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;" id="acoes-${item.id}">
                             ${botaoAcaoStatusHTML}
-                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${item.sabor_prato || ''}', '${statusAtual}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
+                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome.replace(/'/g, "\\'")}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${saborSeguro.replace(/'/g, "\\'")}', '${statusAtual}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
                             <button onclick="deletarInscricao('${item.id}')" style="background:#f44336; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Excluir</button>
                         </div>
                     </td>
@@ -221,7 +224,6 @@ async function salvarDoacaoParceiro(id) {
         if (celulaNome.innerText.includes('50')) eh50 = true;
     }
 
-    // Se o valor digitado for 0 ou vazio, redefine para o status correto pendente correspondente
     let novoStatusPix = '';
     if (valorDoado === 0) {
         if (eh100) novoStatusPix = 'Box Friendly (Isenção Total)';
@@ -249,26 +251,30 @@ function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, sabor
     const celulaNome = document.getElementById(`celula-nome-${id}`);
     if (!celulaNome) return;
 
-    // Detecta o tipo de parceria atual para deixar o select marcado certinho
+    // Detecta o tipo de parceria atual
     let tipoParceriaAtual = "comum";
-    if (statusAtual.includes("100")) tipoParceriaAtual = "100";
-    else if (statusAtual.includes("Box Friendly") || statusAtual.includes("50") || statusAtual.includes("Parceiro")) tipoParceriaAtual = "50";
+    if (statusAtual.includes("100") || statusAtual.includes("Total")) tipoParceriaAtual = "100";
+    else if (statusAtual.includes("Box Friendly") || statusAtual.includes("50") || statusAtual.includes("Titular") || statusAtual.includes("Parceiro")) tipoParceriaAtual = "50";
 
-    // Extrai os sabores se já existirem no banco separados por '|'
+    // Decodifica a string saborPrato do banco para separar o Doce e Salgado nos inputs visuais
     let doceAtual = "";
     let salgadoAtual = "";
+    
     if (saborPrato.includes("|")) {
         const partes = saborPrato.split("|");
-        doceAtual = partes[0].replace("Doce:", "").trim();
-        salgadoAtual = partes[1].replace("Salgado:", "").trim();
+        partes.forEach(p => {
+            if (p.includes("Doce:")) doceAtual = p.replace("Doce:", "").trim();
+            if (p.includes("Salgado:")) salgadoAtual = p.replace("Salgado:", "").trim();
+        });
     } else if (saborPrato.includes("Salgado:")) {
         salgadoAtual = saborPrato.replace("Salgado:", "").trim();
     } else if (saborPrato.includes("Doce:")) {
         doceAtual = saborPrato.replace("Doce:", "").trim();
-    } else if (saborPrato !== "Não especificado") {
-        salgadoAtual = saborPrato; // Fallback caso seja texto puro antigo
+    } else if (saborPrato && saborPrato !== "Não especificado") {
+        salgadoAtual = saborPrato; // Se for texto antigo corrido, joga em salgado por precaução
     }
 
+    // IDs dos inputs alterados para não conflitar com colunas inexistentes!
     celulaNome.innerHTML = `
         <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; border: 1px solid #555; width: 100%; box-sizing: border-box;">
             <span style="font-size:10px; color:#00BCD4; font-weight:bold; display:block; margin-bottom:2px;">NOME DO PARTICIPANTE:</span>
@@ -299,10 +305,10 @@ function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, sabor
             </div>
 
             <span style="font-size:10px; color:#4CAF50; font-weight:bold; display:block; margin-bottom:2px;">PRATO SALGADO:</span>
-            <input type="text" id="edit-salhado-${id}" value="${salgadoAtual}" placeholder="Ex: Coxinha, Empadão" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
+            <input type="text" id="edit-sabor-salgado-${id}" value="${salgadoAtual}" placeholder="Ex: Coxinha, Empadão" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
 
             <span style="font-size:10px; color:#4CAF50; font-weight:bold; display:block; margin-bottom:2px;">PRATO DOCE:</span>
-            <input type="text" id="edit-doce-${id}" value="${doceAtual}" placeholder="Ex: Canjica, Pé de Moleque" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; box-sizing: border-box;">
+            <input type="text" id="edit-sabor-doce-${id}" value="${doceAtual}" placeholder="Ex: Canjica, Pé de Moleque" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; box-sizing: border-box;">
         </div>
     `;
 
@@ -317,8 +323,10 @@ async function salvarEdicaoCadastroCompleta(id) {
     const grupoAlt = document.getElementById('edit-grupo-' + id).value;
     const conjugeAlt = Number(document.getElementById('edit-conjuge-' + id).value) || 0;
     const amigosAlt = Number(document.getElementById('edit-amigos-' + id).value) || 0;
-    const salgadoAlt = document.getElementById('edit-salhado-' + id).value.trim();
-    const doceAlt = document.getElementById('edit-doce-' + id).value.trim();
+    
+    // Captura dos IDs corrigidos gerados na função abrirEdicaoCadastroCompleta
+    const salgadoAlt = document.getElementById('edit-sabor-salgado-' + id).value.trim();
+    const doceAlt = document.getElementById('edit-sabor-doce-' + id).value.trim();
     const parceriaAlt = document.getElementById('edit-parceria-' + id).value;
 
     if (!nomeAlt) {
@@ -331,7 +339,7 @@ async function salvarEdicaoCadastroCompleta(id) {
     if (parceriaAlt === "100") novoStatusFinal = "Box Friendly (Isenção Total)";
     else if (parceriaAlt === "50") novoStatusFinal = "Box Friendly (Isenção Titular)";
 
-    // Formata a string de prato combinando ambos os campos de acordo com a estrutura oficial
+    // Monta a string no formato do banco de dados para evitar erros de esquema cache
     let saborFinal = "";
     if (salgadoAlt && doceAlt) {
         saborFinal = `Doce: ${doceAlt} | Salgado: ${salgadoAlt}`;
@@ -352,8 +360,8 @@ async function salvarEdicaoCadastroCompleta(id) {
             tipo_grupo: grupoAlt,
             qtd_conjuge: conjugeAlt,
             qtd_amigos: amigosAlt,
-            categoria_prato: categoryFinal, // Nome correto da coluna corrigido
-            sabor_prato: saborFinal,         // Nome correto da coluna corrigido
+            categoria_prato: categoryFinal, // Colona válida mapeada
+            sabor_prato: saborFinal,         // Colona válida mapeada
             status_pix: novoStatusFinal 
         })
         .eq('id', id);
