@@ -46,7 +46,7 @@ async function carregarDadosPainelAdmin() {
 
             const statusAtual = item.status_pix || "Pendente";
             
-            // Identifica se é parceiro
+            // Identifica se é parceiro por termos oficiais do cadastro ou pelas tags do adm
             const ehParceiro = statusAtual.includes("Box Friendly") || statusAtual.includes("Parceria") || statusAtual.includes("Parceiro");
             const ehParceiro100 = statusAtual.includes("Isenção Total") || statusAtual.includes("100");
             const ehParceiro50 = statusAtual.includes("Isenção Titular") || statusAtual.includes("50");
@@ -59,8 +59,6 @@ async function carregarDadosPainelAdmin() {
             if (ehParceiro) {
                 if (ehParceiro100) {
                     valorInscricaoCalculada = 0;
-                } else if (ehParceiro50) {
-                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
                 } else {
                     valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
                 }
@@ -126,11 +124,14 @@ async function carregarDadosPainelAdmin() {
                 celulaValorHTML = `<td style="padding: 12px; font-weight: bold; color: #fff; white-space: nowrap; vertical-align: top;">R$ ${valorInscricaoCalculada},00</td>`;
             }
 
-            let rotuloParceiro = "(Parceiro)";
-            if (ehParceiro100) rotuloParceiro = "(Parceiro 100)";
-            else if (ehParceiro50) rotuloParceiro = "(Parceiro 50)";
+            let rotuloParceiro = "";
+            if (ehParceiro) {
+                if (ehParceiro100) rotuloParceiro = ' <span style="color: #00BCD4; font-size: 11px;">(Parceiro 100)</span>';
+                else if (ehParceiro50) rotuloParceiro = ' <span style="color: #00BCD4; font-size: 11px;">(Parceiro 50)</span>';
+                else rotuloParceiro = ' <span style="color: #00BCD4; font-size: 11px;">(Parceiro)</span>';
+            }
             
-            const nomeExibicao = ehParceiro ? `<strong>${item.nome}</strong> <span style="color: #00BCD4; font-size: 11px;">${rotuloParceiro}</span>` : `<strong>${item.nome}</strong>`;
+            const nomeExibicao = `<strong>${item.nome}</strong>${rotuloParceiro}`;
 
             tabelaCorpo.innerHTML += `
                 <tr id="linha-${item.id}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -147,7 +148,7 @@ async function carregarDadosPainelAdmin() {
                     <td style="padding: 12px; text-align: center; vertical-align: top;">
                         <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;" id="acoes-${item.id}">
                             ${botaoAcaoStatusHTML}
-                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${item.prato_salgado || ''}', '${item.prato_doce || ''}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
+                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${item.prato_salgado || ''}', '${item.prato_doce || ''}', '${statusAtual}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
                             <button onclick="deletarInscricao('${item.id}')" style="background:#f44336; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Excluir</button>
                         </div>
                     </td>
@@ -220,7 +221,6 @@ async function salvarDoacaoParceiro(id) {
         if (celulaNome.innerText.includes('50')) eh50 = true;
     }
 
-    // AJUSTE CRUCIAL: Se o valor digitado for 0 ou vazio, redefine para o status correto pendente
     let novoStatusPix = '';
     if (valorDoado === 0) {
         if (eh100) novoStatusPix = 'Box Friendly (Isenção Total)';
@@ -244,16 +244,29 @@ async function salvarDoacaoParceiro(id) {
     }
 }
 
-function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, pratoSalgado, pratoDoce) {
+function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, pratoSalgado, pratoDoce, statusAtual) {
     const celulaNome = document.getElementById(`celula-nome-${id}`);
     if (!celulaNome) return;
+
+    // Detecta o tipo de parceria atual para deixar o <select> marcado certinho
+    let tipoParceriaAtual = "comum";
+    if (statusAtual.includes("100")) tipoParceriaAtual = "100";
+    else if (statusAtual.includes("Box Friendly") || statusAtual.includes("50") || statusAtual.includes("Parceiro")) tipoParceriaAtual = "50";
 
     celulaNome.innerHTML = `
         <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; border: 1px solid #555; width: 100%; box-sizing: border-box;">
             <span style="font-size:10px; color:#00BCD4; font-weight:bold; display:block; margin-bottom:2px;">NOME DO PARTICIPANTE:</span>
             <input type="text" id="edit-nome-${id}" value="${nome}" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
             
-            <span style="font-size:10px; color:#00BCD4; font-weight:bold; display:block; margin-bottom:2px;">TIPO DE GRUPO:</span>
+            <!-- NOVO CAMPO: CORREÇÃO DE PARCERIA TRAVADA -->
+            <span style="font-size:10px; color:#00BCD4; font-weight:bold; display:block; margin-bottom:2px;">CATEGORIA / PARCERIA:</span>
+            <select id="edit-parceria-${id}" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
+                <option value="comum" ${tipoParceriaAtual === 'comum' ? 'selected' : ''}>Aluno Comum</option>
+                <option value="50" ${tipoParceriaAtual === '50' ? 'selected' : ''}>Box Friendly (Isenção Titular - 50)</option>
+                <option value="100" ${tipoParceriaAtual === '100' ? 'selected' : ''}>Box Friendly (Isenção Total - 100)</option>
+            </select>
+
+            <span style="font-size:10px; color:#aaa; display:block; margin-bottom:2px;">TIPO DE GRUPO:</span>
             <select id="edit-grupo-${id}" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
                 <option value="Solteiro" ${tipoGrupo === 'Solteiro' ? 'selected' : ''}>Solteiro</option>
                 <option value="Casal/Família" ${tipoGrupo !== 'Solteiro' ? 'selected' : ''}>Família</option>
@@ -291,11 +304,17 @@ async function salvarEdicaoCadastroCompleta(id) {
     const amigosAlt = Number(document.getElementById('edit-amigos-' + id).value) || 0;
     const salgadoAlt = document.getElementById('edit-salhado-' + id).value.trim();
     const doceAlt = document.getElementById('edit-doce-' + id).value.trim();
+    const parceriaAlt = document.getElementById('edit-parceria-' + id).value;
 
     if (!nomeAlt) {
         alert("O nome é obrigatório.");
         return;
     }
+
+    // Define o novo status com base na seleção do menu de edição
+    let novoStatusFinal = "Pendente";
+    if (parceriaAlt === "100") novoStatusFinal = "Box Friendly (Isenção Total)";
+    else if (parceriaAlt === "50") novoStatusFinal = "Box Friendly (Isenção Titular)";
 
     const { error } = await _supabase
         .from('cadastro_arraia')
@@ -305,7 +324,8 @@ async function salvarEdicaoCadastroCompleta(id) {
             qtd_conjuge: conjugeAlt,
             qtd_amigos: amigosAlt,
             prato_salgado: salgadoAlt,
-            prato_doce: doceAlt
+            prato_doce: doceAlt,
+            status_pix: novoStatusFinal // Atualiza a parceria forçadamente para corrigir erros
         })
         .eq('id', id);
 
