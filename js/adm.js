@@ -46,12 +46,11 @@ async function carregarDadosPainelAdmin() {
 
             const ehParceiro = item.status_pix && (item.status_pix.includes("Box Friendly") || item.status_pix.includes("Parceria") || item.status_pix.includes("Parceiro"));
             const statusAtual = item.status_pix || "Pendente";
-
-            if (statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual.includes("Pago")) {
-                totalPessoasPagas += totalPessoasLinha;
-            }
             
-            // 1. CÁLCULO DE INSCRIÇÃO
+            // Constante para verificar se a linha atual possui o pagamento validado
+            const estaValidado = statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual.includes("Pago");
+
+            // 1. CÁLCULO DE INSCRIÇÃO INDEPENDENTE DO STATUS
             let valorInscricaoCalculada = 0;
             if (ehParceiro) {
                 valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Titular parceiro é isento
@@ -62,22 +61,33 @@ async function carregarDadosPainelAdmin() {
             // 2. ISOLA A DOAÇÃO PURA DO PARCEIRO
             const valorDoacaoPura = ehParceiro ? (Number(item.total_pix) || 0) : 0;
 
-            faturamentoPublicoGeral += valorInscricaoCalculada;
-            if (ehParceiro) {
-                faturamentoPatrocinios += valorDoacaoPura;
+            // REGRA DE SOMA: Só adiciona aos totais se estiver validado/pago
+            if (estaValidado) {
+                totalPessoasPagas += totalPessoasLinha;
+                faturamentoPublicoGeral += valorInscricaoCalculada;
+                
+                if (ehParceiro) {
+                    faturamentoPatrocinios += valorDoacaoPura;
+                }
             }
-
-            const valorExibicaoLinha = ehParceiro ? (valorInscricaoCalculada + valorDoacaoPura) : valorInscricaoCalculada;
 
             let statusTexto = "⏳ Pendente";
             let estiloBadge = "background: rgba(255, 152, 0, 0.1); color: #FF9800; border: 1px solid rgba(255, 152, 0, 0.2);";
 
-            if (statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual === "Pago (Parceiro)") {
+            if (estaValidado) {
                 statusTexto = "✅ Pago";
                 estiloBadge = "background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.2);";
             } else if (statusAtual === "Parcial" || statusAtual === "Pagamento Parcial") {
                 statusTexto = "⚡ Parcial";
                 estiloBadge = "background: rgba(255, 87, 34, 0.1); color: #FF5722; border: 1px solid rgba(255, 87, 34, 0.2);";
+            }
+
+            // BOTÃO DINÂMICO: Altera de Validar para Desfazer conforme o status atual do banco
+            let botaoAcaoStatusHTML = "";
+            if (estaValidado) {
+                botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', 'Pendente')" style="background:#555; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Desfazer</button>`;
+            } else {
+                botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', '${ehParceiro ? 'Pago (Parceiro)' : 'Pago'}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>`;
             }
 
             let celulaValorHTML = "";
@@ -112,7 +122,7 @@ async function carregarDadosPainelAdmin() {
                     </td>
                     <td style="padding: 12px; text-align: center; vertical-align: top;">
                         <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;" id="acoes-${item.id}">
-                            <button onclick="alterarStatusRapido('${item.id}', '${ehParceiro ? 'Pago (Parceiro)' : 'Pago'}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>
+                            ${botaoAcaoStatusHTML}
                             <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${item.prato_salgado || ''}', '${item.prato_doce || ''}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
                             <button onclick="deletarInscricao('${item.id}')" style="background:#f44336; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Excluir</button>
                         </div>
