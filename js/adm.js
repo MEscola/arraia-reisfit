@@ -46,7 +46,7 @@ async function carregarDadosPainelAdmin() {
 
             const statusAtual = item.status_pix || "Pendente";
             
-            // Identifica se é parceiro por termos oficiais do cadastro ou pelas tags do adm
+            // Identifica se é parceiro
             const ehParceiro = statusAtual.includes("Box Friendly") || statusAtual.includes("Parceria") || statusAtual.includes("Parceiro");
             const ehParceiro100 = statusAtual.includes("Isenção Total") || statusAtual.includes("100");
             const ehParceiro50 = statusAtual.includes("Isenção Titular") || statusAtual.includes("50");
@@ -58,12 +58,12 @@ async function carregarDadosPainelAdmin() {
             let valorInscricaoCalculada = 0;
             if (ehParceiro) {
                 if (ehParceiro100) {
-                    valorInscricaoCalculada = 0; // Isenção Total
+                    valorInscricaoCalculada = 0;
                 } else {
-                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20); // Isenção Titular
+                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
                 }
             } else {
-                valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20); // Aluno comum
+                valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20);
             }
 
             // 2. ISOLA A DOAÇÃO PURA DO PARCEIRO
@@ -132,15 +132,20 @@ async function carregarDadosPainelAdmin() {
             }
             
             const nomeExibicao = `<strong>${item.nome}</strong>${rotuloParceiro}`;
-
-            // Passa explicitamente a string do sabor_prato para a renderização do formulário interno de edição
             const saborSeguro = item.sabor_prato || "";
+
+            // VISUALIZAÇÃO DE CRIANÇAS NO ADM: Se tiver texto no campo crianças, cria um aviso destacado em azul
+            let textoCriancasHTML = "";
+            if (item.criancas && item.criancas.trim() !== "") {
+                textoCriancasHTML = `<div style="margin-top: 4px; font-size: 11px; color: #FF9800; background: rgba(255, 152, 0, 0.05); padding: 2px 6px; border-radius: 4px; display: inline-block;">👶 Crianças: ${item.criancas}</div>`;
+            }
 
             tabelaCorpo.innerHTML += `
                 <tr id="linha-${item.id}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td style="padding: 12px; vertical-align: top;" id="celula-nome-${item.id}">
                         ${nomeExibicao}
                         <small style="color:#888; display:block; margin-top:2px;">Grupo: ${item.tipo_grupo} | Total: ${totalPessoasLinha} pessoas</small>
+                        ${textoCriancasHTML}
                     </td>
                     ${celulaValorHTML}
                     <td style="padding: 12px; width: 70px; min-width: 70px; white-space: nowrap; vertical-align: top;">
@@ -151,7 +156,7 @@ async function carregarDadosPainelAdmin() {
                     <td style="padding: 12px; text-align: center; vertical-align: top;">
                         <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;" id="acoes-${item.id}">
                             ${botaoAcaoStatusHTML}
-                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome.replace(/'/g, "\\'")}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${saborSeguro.replace(/'/g, "\\'")}', '${statusAtual}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
+                            <button onclick="abrirEdicaoCadastroCompleta('${item.id}', '${item.nome.replace(/'/g, "\\'")}', '${item.tipo_grupo}', ${conjuge}, ${amigos}, '${saborSeguro.replace(/'/g, "\\'")}', '${statusAtual}', '${(item.criancas || '').replace(/'/g, "\\'")}')" style="background:#673AB7; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Editar</button>
                             <button onclick="deletarInscricao('${item.id}')" style="background:#f44336; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Excluir</button>
                         </div>
                     </td>
@@ -247,16 +252,14 @@ async function salvarDoacaoParceiro(id) {
     }
 }
 
-function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, saborPrato, statusAtual) {
+function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, saborPrato, statusAtual, criancas) {
     const celulaNome = document.getElementById(`celula-nome-${id}`);
     if (!celulaNome) return;
 
-    // Detecta o tipo de parceria atual
     let tipoParceriaAtual = "comum";
     if (statusAtual.includes("100") || statusAtual.includes("Total")) tipoParceriaAtual = "100";
     else if (statusAtual.includes("Box Friendly") || statusAtual.includes("50") || statusAtual.includes("Titular") || statusAtual.includes("Parceiro")) tipoParceriaAtual = "50";
 
-    // Decodifica a string saborPrato do banco para separar o Doce e Salgado nos inputs visuais
     let doceAtual = "";
     let salgadoAtual = "";
     
@@ -271,10 +274,9 @@ function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, sabor
     } else if (saborPrato.includes("Doce:")) {
         doceAtual = saborPrato.replace("Doce:", "").trim();
     } else if (saborPrato && saborPrato !== "Não especificado") {
-        salgadoAtual = saborPrato; // Se for texto antigo corrido, joga em salgado por precaução
+        salgadoAtual = saborPrato;
     }
 
-    // IDs dos inputs alterados para não conflitar com colunas inexistentes!
     celulaNome.innerHTML = `
         <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; border: 1px solid #555; width: 100%; box-sizing: border-box;">
             <span style="font-size:10px; color:#00BCD4; font-weight:bold; display:block; margin-bottom:2px;">NOME DO PARTICIPANTE:</span>
@@ -304,6 +306,9 @@ function abrirEdicaoCadastroCompleta(id, nome, tipoGrupo, conjuge, amigos, sabor
                 </div>
             </div>
 
+            <span style="font-size:10px; color:#FF9800; font-weight:bold; display:block; margin-bottom:2px;">CRIANÇAS MENORES DE 13 ANOS:</span>
+            <input type="text" id="edit-criancas-${id}" value="${criancas}" placeholder="Nomes e idades das crianças" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
+
             <span style="font-size:10px; color:#4CAF50; font-weight:bold; display:block; margin-bottom:2px;">PRATO SALGADO:</span>
             <input type="text" id="edit-sabor-salgado-${id}" value="${salgadoAtual}" placeholder="Ex: Coxinha, Empadão" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:4px; font-size:12px; margin-bottom:8px; box-sizing: border-box;">
 
@@ -323,8 +328,7 @@ async function salvarEdicaoCadastroCompleta(id) {
     const grupoAlt = document.getElementById('edit-grupo-' + id).value;
     const conjugeAlt = Number(document.getElementById('edit-conjuge-' + id).value) || 0;
     const amigosAlt = Number(document.getElementById('edit-amigos-' + id).value) || 0;
-    
-    // Captura dos IDs corrigidos gerados na função abrirEdicaoCadastroCompleta
+    const criancasAlt = document.getElementById('edit-criancas-' + id).value.trim();
     const salgadoAlt = document.getElementById('edit-sabor-salgado-' + id).value.trim();
     const doceAlt = document.getElementById('edit-sabor-doce-' + id).value.trim();
     const parceriaAlt = document.getElementById('edit-parceria-' + id).value;
@@ -334,12 +338,10 @@ async function salvarEdicaoCadastroCompleta(id) {
         return;
     }
 
-    // Define o novo status com base na seleção do menu de edição
     let novoStatusFinal = "Pendente";
     if (parceriaAlt === "100") novoStatusFinal = "Box Friendly (Isenção Total)";
     else if (parceriaAlt === "50") novoStatusFinal = "Box Friendly (Isenção Titular)";
 
-    // Monta a string no formato do banco de dados para evitar erros de esquema cache
     let saborFinal = "";
     if (salgadoAlt && doceAlt) {
         saborFinal = `Doce: ${doceAlt} | Salgado: ${salgadoAlt}`;
@@ -360,8 +362,9 @@ async function salvarEdicaoCadastroCompleta(id) {
             tipo_grupo: grupoAlt,
             qtd_conjuge: conjugeAlt,
             qtd_amigos: amigosAlt,
-            categoria_prato: categoryFinal, // Colona válida mapeada
-            sabor_prato: saborFinal,         // Colona válida mapeada
+            criancas: criancasAlt, // Atualiza a coluna de crianças no banco
+            categoria_prato: categoryFinal,
+            sabor_prato: saborFinal,
             status_pix: novoStatusFinal 
         })
         .eq('id', id);
