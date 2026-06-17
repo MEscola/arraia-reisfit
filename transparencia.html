@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arraiá ReisFit — Transparência 📊</title>
+
+    <!-- Configuração para o link em destaque com imagem no WhatsApp -->
+    <meta property="og:site_name" content="Reis Fit">
+    <meta property="og:title" content="PORTAL DA TRANSPARÊNCIA — Arraiá ReisFit 2026">
+    <meta property="og:description" content="Consulte todas as despesas registradas, com comprovantes anexados, de forma clara e transparente.">
+    <meta property="og:image" content="https://mescola.github.io/arraia-reisfit/assets/images/portal_banner2.png?v=novo">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://mescola.github.io/arraia-reisfit/?v=novo">
+    <meta property="og:type" content="website">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header style="width: 100%; overflow: hidden; display: flex; justify-content: center; background-color: #0d1117; margin-bottom: 15px;">
+        <img src="assets/images/portal_banner2.png" alt="Banner Arraiá ReisFit"
+        style="width: 100%; height: auto; display: block; object-fit: cover;">
+    </header>
+
+    <div class="container" style="max-width: 480px; margin: 0 auto; padding: 15px;">
+
+        
+        <p style="color: #aaa; font-size: 13px; line-height: 1.5; text-align: center; margin-bottom: 25px; padding: 0 10px;">
+            Esta página foi criada para prestar contas de forma transparente aos participantes e parceiros do Arraiá ReisFit. Todas as despesas registradas possuem comprovantes anexados e podem ser consultadas abaixo.
+        </p>
+        
+        <!-- 🎯 1. RESUMO GERAL (Subiu para o Topo!) -->
+        <div class="form-card" style="display: flex; flex-direction: column; gap: 8px; border: 1px solid #333; padding: 15px; margin-bottom: 25px; background: rgba(255,255,255,0.01);">
+            <h3 style="color: #fff; font-size: 13px; margin-top: 0; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; color: #888;">
+                📈 Resumo Geral
+            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                <span style="color: #ccc;">Arrecadado:</span>
+                <strong id="transp-geral-arrecadado" style="color: #fff; font-size: 14px;">R$ 0,00</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                <span style="color: #ccc;">Gastos:</span>
+                <strong id="transp-geral-gasto" style="color: #fff; font-size: 14px;">R$ 0,00</strong>
+            </div>
+            
+            <div style="height: 1px; background: #333; width: 100%; margin: 4px 0;"></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold;">
+                <span style="color: #00BCD4;">SALDO:</span>
+                <strong id="transp-geral-saldo" style="color: #00BCD4; font-size: 15px;">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <!-- 💰 2. RECURSOS RECEBIDOS -->
+        <div class="form-card" style="margin-bottom: 25px; padding: 15px; border: 1px solid #333;">
+            <h3 style="color: #00BCD4; font-size: 14px; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 6px;">
+                💰 Recursos Recebidos
+            </h3>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #ccc; margin-bottom: 6px;">
+                <span>👥 Participantes:</span>
+                <strong id="transp-alunos" style="color: #fff;">R$ 0,00</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #ccc; margin-bottom: 10px;">
+                <span>🤝 Parceiros:</span>
+                <strong id="transp-parceiros" style="color: #fff;">R$ 0,00</strong>
+            </div>
+            <div style="height: 1px; background: #333; margin-bottom: 10px;"></div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
+                <span style="color: #4CAF50;">💵 Total Arrecadado:</span>
+                <strong id="transp-arrecadacao" style="color: #4CAF50;">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <!-- 📊 3. RESUMO DOS GASTOS POR CATEGORIA (Ordenado dinamicamente via JS) -->
+        <div class="form-card" style="margin-bottom: 25px; padding: 15px; border: 1px solid #333;">
+            <h3 style="color: #FF9800; font-size: 14px; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 6px;">
+                📊 Resumo dos Gastos
+            </h3>
+            
+            <div id="transp-resumo-categorias">
+                <p style="color:#666; font-size:13px; font-style:italic;">Calculando categorias...</p>
+            </div>
+            
+            <div style="height: 1px; background: #333; margin: 12px 0 10px 0;"></div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
+                <span style="color: #F44336;">TOTAL GASTO:</span>
+                <strong id="transp-total-gasto" style="color: #F44336; font-family: monospace;">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <!-- 📋 4. DETALHAMENTO COMPLETO (TABELA) -->
+        <div class="form-card" style="padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.03); margin-bottom: 25px;">
+            <h3 style="color: #fff; margin-top: 0; margin-bottom: 15px; font-size: 14px; border-bottom: 1px solid #222; padding-bottom: 8px;">
+                📋 Detalhamento de Gastos
+            </h3>
+            
+            <div style="overflow-x: auto;">
+                <table style="width:100%; border-collapse:collapse; text-align:left;">
+                    <thead>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:#00BCD4; font-size:11px; text-transform:uppercase;">
+                            <th style="padding:8px 4px;">Categoria</th>
+                            <th style="padding:8px 4px;">Item</th>
+                            <th style="padding:8px 4px;">Valor</th>
+                            <th style="padding:8px 4px; text-align:center;">Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-transp-corpo">
+                        <!-- Injetado dinamicamente via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!--  5. SALDO FINAL (Simplificado e Definitivo) -->
+        <div class="form-card" style="margin-bottom: 25px; padding: 15px; border: 1px solid #333; background: rgba(0, 188, 212, 0.01);">
+            <h3 style="color: #00BCD4; font-size: 14px; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 6px;">
+                Saldo Final
+            </h3>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                <span id="label-saldo-texto" style="color: #aaa;">Saldo após todos os gastos registrados:</span>
+                <strong id="transp-saldo-final" style="color: #00BCD4; font-size: 14px;">R$ 0,00</strong>
+            </div>
+            <p style="color: #888; font-size: 12px; margin: 5px 0 0 0; font-style: italic;">
+                Este valor representa o resultado financeiro final do evento.
+            </p>
+        </div>
+
+    </div>
+
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 12px; margin-bottom: 80px;">
+        Organização Arraiá ReisFit
+        <p>Até o próximo evento!</p>
+    </footer>
+
+    <!-- Scripts do Sistema -->
+    <script src="js/supabase.js?v=4"></script>
+    <script src="js/transparencia.js?v=4"></script>
+
+    <!-- BARRA FLUTUANTE DE TESTE (Ajustada no fim do body para segurança) -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('modo_desenvolvedor') === 'true') {
+                const barra = document.createElement('div');
+                barra.style = "position: fixed; top: 0; left: 0; width: 100%; background: #111; color: #fff; text-align: center; padding: 10px; font-size: 12px; z-index: 10000; border-bottom: 2px solid #00BCD4; display: flex; justify-content: center; align-items: center; gap: 10px; font-family: sans-serif;";
+                barra.innerHTML = `
+                    <span>🛠️ Modo de Teste Ativo</span>
+                    <button onclick="desativarTeste()" style="background: #F44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;">Voltar p/ Inscrição</button>
+                `;
+                document.body.prepend(barra);
+                document.body.style.paddingTop = "40px";
+            }
+        });
+
+        function desativarTeste() {
+            localStorage.setItem('modo_desenvolvedor', 'false');
+            window.location.href = "index.html?teste=0";
+        }
+    </script>
+</body>
+</html>

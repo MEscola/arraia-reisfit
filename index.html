@@ -19,6 +19,66 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- REDIRECIONAMENTO INTELIGENTE DA FESTA / TRANSPARÊNCIA -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // -------------------------------------------------------------
+            // 🟢 CHAVE SELETORA OFICIAL (PÓS-FESTA)
+            // Para fechar o cadastro e mandar TODOS os alunos para o Portal da Transparência,
+            // basta apagar as duas barras (//) do início da linha abaixo quando a festa acabar:
+            
+            // window.location.href = "transparencia.html";
+            // -------------------------------------------------------------
+
+            // 🕹️ MODO DEV / CHAVE INDIVIDUAL DE TESTES
+            // Permite que você teste as telas alternando via URL sem afetar os alunos.
+            if (window.location.search.includes('teste=1') || localStorage.getItem('modo_desenvolvedor') === 'true') {
+                localStorage.setItem('modo_desenvolvedor', 'true');
+                
+                // Cria e injeta a barra preta da chave seletora dinamicamente no topo do seu navegador
+                const bar = document.createElement('div');
+                bar.style = "background:#111; padding:10px; border-bottom:1px solid #333; text-align:center; font-family:sans-serif; position:sticky; top:0; z-index:9999;";
+                
+                const isTransp = localStorage.getItem('ambiente_site') === 'transparencia';
+                
+                bar.innerHTML = `
+                    <span style="color:#fff; font-size:13px; margin-right:10px; font-weight:bold;">🔧 Modo de Teste:</span>
+                    <label style="position:relative; display:inline-block; width:50px; height:24px; vertical-align:middle;">
+                        <input type="checkbox" id="chave-ambiente" style="opacity:0; width:0; height:0;" ${isTransp ? 'checked' : ''}>
+                        <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:${isTransp ? '#00BCD4' : '#F44336'}; transition:.4s; border-radius:24px;"></span>
+                    </label>
+                    <span style="color:${isTransp ? '#00BCD4' : '#F44336'}; font-size:13px; margin-left:10px; font-weight:bold;">
+                        ${isTransp ? 'Transparência 📊' : 'Festa Ativa 🤠'}
+                    </span>
+                `;
+                
+                document.body.prepend(bar);
+                
+                // Adiciona o estilo dinâmico do controle deslizante da chave
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    #chave-ambiente + span:before { position:absolute; content:""; height:16px; width:16px; left:4px; bottom:4px; background-color:white; transition:.4s; border-radius:50%; ${isTransp ? 'transform:translateX(26px);' : ''} }
+                `;
+                document.head.appendChild(style);
+
+                // Lógica de redirecionamento individual com base na chave do seu navegador
+                if (isTransp && !window.location.pathname.includes('transparencia.html')) {
+                    window.location.href = "transparencia.html";
+                }
+
+                document.getElementById('chave-ambiente').addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        localStorage.setItem('ambiente_site', 'transparencia');
+                        window.location.href = "transparencia.html";
+                    } else {
+                        localStorage.setItem('ambiente_site', 'festa');
+                        window.location.href = "index.html";
+                    }
+                });
+            }
+        });
+    </script>
 </head>
 
 <body>
