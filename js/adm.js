@@ -476,7 +476,7 @@ async function lancarGastoArraia(event) {
 
         const { data: uploadData, error: uploadError } = await _supabase
             .storage
-            .from('notas_fiscais')
+            .from('noatas_fiscais')
             .upload(nomeArquivoUnico, arquivo);
 
         if (uploadError) {
@@ -488,7 +488,7 @@ async function lancarGastoArraia(event) {
 
         const { data: urlPublica } = _supabase
             .storage
-            .from('notas_fiscais')
+            .from('noatas_fiscais')
             .getPublicUrl(nomeArquivoUnico);
 
         urlNotaFinal = urlPublica.publicUrl;
@@ -525,7 +525,7 @@ async function deletarGastoArraia(id, urlNota) {
 
     if (urlNota && urlNota.trim() !== "") {
         const nomeArquivo = urlNota.split('/').pop();
-        await _supabase.storage.from('notas_fiscais').remove([nomeArquivo]);
+        await _supabase.storage.from('noatas_fiscais').remove([nomeArquivo]);
     }
 
     const { error } = await _supabase
