@@ -479,6 +479,9 @@ async function lancarGastoArraia(event) {
             .from('noatas_fiscais')
             .upload(nomeArquivoUnico, arquivo);
 
+        console.log("Resultado do Upload Data:", uploadData);
+        console.log("Resultado do Upload Error:", uploadError);
+
         if (uploadError) {
             alert("Erro ao fazer upload da imagem: " + uploadError.message);
             btn.disabled = false;
