@@ -2,15 +2,21 @@
 
 window.addEventListener('DOMContentLoaded', () => {
     carregarDadosPainelAdmin();
+    carregarGastosPainelAdmin(); // Carrega os gastos cadastrados assim que abre o painel
 });
 
 function carregarPainelADM() {
     carregarDadosPainelAdmin();
+    carregarGastosPainelAdmin();
 }
+
+// ==========================================
+// 1. GERENCIAMENTO FINANCEIRO DOS PARTICIPANTES
+// ==========================================
 
 async function carregarDadosPainelAdmin() {
     const tabelaCorpo = document.getElementById('tabela-adm-corpo');
-    const containerGeral = document.getElementById('total-general-caixa');
+    const containerGeral = document.getElementById('total-geral-caixa');
     const containerPublico = document.getElementById('total-publico-geral');
     const containerPatrocinios = document.getElementById('total-patrocinios');
 
@@ -40,21 +46,18 @@ async function carregarDadosPainelAdmin() {
         inscritos.forEach(item => {
             const conjuge = Number(item.qtd_conjuge) || 0;
             const amigos = Number(item.qtd_amigos) || 0;
-            const totalPessoasLinha = 1 + conjuge + amigos; // Soma o titular + acompanhantes
+            const totalPessoasLinha = 1 + conjuge + amigos;
             
             totalPessoasGeral += totalPessoasLinha;
 
             const statusAtual = item.status_pix || "Pendente";
             
-            // Identifica se é parceiro
             const ehParceiro = statusAtual.includes("Box Friendly") || statusAtual.includes("Parceria") || statusAtual.includes("Parceiro");
             const ehParceiro100 = statusAtual.includes("Isenção Total") || statusAtual.includes("100");
             const ehParceiro50 = statusAtual.includes("Isenção Titular") || statusAtual.includes("50");
 
-            // Verifica se o pagamento está validado
             const estaValidado = statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual.includes("Pago");
 
-            // 1. CÁLCULO DE INSCRIÇÃO INDEPENDENTE DO STATUS
             let valorInscricaoCalculada = 0;
             if (ehParceiro) {
                 if (ehParceiro100) {
@@ -66,10 +69,8 @@ async function carregarDadosPainelAdmin() {
                 valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20);
             }
 
-            // 2. ISOLA A DOAÇÃO PURA DO PARCEIRO
             const valorDoacaoPura = ehParceiro ? (Number(item.total_pix) || 0) : 0;
 
-            // REGRA DE SOMA: Só adiciona se estiver validado
             if (estaValidado) {
                 totalPessoasPagas += totalPessoasLinha;
                 faturamentoPublicoGeral += valorInscricaoCalculada;
@@ -90,7 +91,6 @@ async function carregarDadosPainelAdmin() {
                 estiloBadge = "background: rgba(255, 87, 34, 0.1); color: #FF5722; border: 1px solid rgba(255, 87, 34, 0.2);";
             }
 
-            // BOTÃO DINÂMICO
             let botaoAcaoStatusHTML = "";
             if (estaValidado) {
                 let statusAoDesfazer = 'Pendente';
@@ -134,7 +134,6 @@ async function carregarDadosPainelAdmin() {
             const nomeExibicao = `<strong>${item.nome}</strong>${rotuloParceiro}`;
             const saborSeguro = item.sabor_prato || "";
 
-            // VISUALIZAÇÃO DE CRIANÇAS NO ADM: Se tiver texto no campo crianças, cria um aviso destacado em azul
             let textoCriancasHTML = "";
             if (item.criancas && item.criancas.trim() !== "") {
                 textoCriancasHTML = `<div style="margin-top: 4px; font-size: 11px; color: #FF9800; background: rgba(255, 152, 0, 0.05); padding: 2px 6px; border-radius: 4px; display: inline-block;">👶 Crianças: ${item.criancas}</div>`;
@@ -362,7 +361,7 @@ async function salvarEdicaoCadastroCompleta(id) {
             tipo_grupo: grupoAlt,
             qtd_conjuge: conjugeAlt,
             qtd_amigos: amigosAlt,
-            criancas: criancasAlt, // Atualiza a coluna de crianças no banco
+            criancas: criancasAlt,
             categoria_prato: categoryFinal,
             sabor_prato: saborFinal,
             status_pix: novoStatusFinal 
@@ -390,3 +389,157 @@ async function deletarInscricao(id) {
         carregarDadosPainelAdmin();
     }
 }
+
+// ==========================================
+// 2. PORTAL DA TRANSPARÊNCIA: GESTÃO DE GASTOS
+// ==========================================
+
+// Função para listar os gastos cadastrados na aba correspondente do ADM
+async function carregarGastosPainelAdmin() {
+    const tabelaGastosCorpo = document.getElementById('tabela-adm-gastos-corpo');
+    const containerTotalGastos = document.getElementById('total-gastos-painel');
+    
+    if (!tabelaGastosCorpo) return;
+
+    tabelaGastosCorpo.innerHTML = '<tr><td colspan="4" style="padding:15px; text-align:center; color:#aaa;">Buscando notas...</td></tr>';
+
+    const { data: gastos, error } = await _supabase
+        .from('gastos_arraia')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Erro ao carregar gastos:", error);
+        tabelaGastosCorpo.innerHTML = '<tr><td colspan="4" style="padding:15px; text-align:center; color:#f44336;">Erro.</td></tr>';
+        return;
+    }
+
+    tabelaGastosCorpo.innerHTML = '';
+    let somaGastos = 0;
+
+    if (gastos && gastos.length > 0) {
+        gastos.forEach(gasto => {
+            somaGastos += Number(gasto.valor) || 0;
+            
+            let botaoNotaHTML = gasto.url_nota 
+                ? `<a href="${gasto.url_nota}" target="_blank" style="color: #00BCD4; font-weight:bold; text-decoration:none;">📄 Ver</a>` 
+                : `<span style="color:#555; font-style:italic;">Não</span>`;
+
+            // CORREÇÃO: Alinhado exatamente com o número de colunas (4) do seu novo adm.html
+            tabelaGastosCorpo.innerHTML += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px;">
+                    <td style="padding: 10px; color:#fff;">
+                        <strong>${gasto.descricao}</strong>
+                        <small style="color:#666; display:block; font-size:10px;">Cat: ${gasto.categoria}</small>
+                    </td>
+                    <td style="padding: 10px; color:#FF9800; font-weight:bold; white-space:nowrap;">R$ ${gasto.valor.toFixed(2)}</td>
+                    <td style="padding: 10px; text-align:center;">${botaoNotaHTML}</td>
+                    <td style="padding: 10px; text-align:center;">
+                        <button onclick="deletarGastoArraia('${gasto.id}', '${gasto.url_nota || ''}')" style="background:#f44336; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;">X</button>
+                    </td>
+                </tr>
+            `;
+        });
+    } else {
+        tabelaGastosCorpo.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#888;">Nenhum custo lançado.</td></tr>';
+    }
+
+    if (containerTotalGastos) {
+        containerTotalGastos.innerText = `R$ ${somaGastos.toFixed(2)}`;
+    }
+}
+
+// Lógica de Envio de arquivo e cadastro de despesa
+async function lancarGastoArraia(event) {
+    event.preventDefault();
+    
+    const btn = document.getElementById('btn-salvar-gasto');
+    const desc = document.getElementById('gasto-descricao').value.trim();
+    const valor = Number(document.getElementById('gasto-valor').value) || 0;
+    const cat = document.getElementById('gasto-categoria').value;
+    const arquivoInput = document.getElementById('gasto-arquivo');
+
+    if (!desc || valor <= 0 || !cat) {
+        alert("Preencha todos os campos obrigatórios corretamente!");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Processando upload...";
+
+    let urlNotaFinal = null;
+
+    if (arquivoInput && arquivoInput.files.length > 0) {
+        const arquivo = arquivoInput.files[0];
+        const extensao = arquivo.name.split('.').pop();
+        const nomeArquivoUnico = `${Date.now()}_nota.${extensao}`;
+
+        const { data: uploadData, error: uploadError } = await _supabase
+            .storage
+            .from('notas_fiscais')
+            .upload(nomeArquivoUnico, arquivo);
+
+        if (uploadError) {
+            alert("Erro ao fazer upload da imagem: " + uploadError.message);
+            btn.disabled = false;
+            btn.innerText = "Lançar Despesa";
+            return;
+        }
+
+        const { data: urlPublica } = _supabase
+            .storage
+            .from('notas_fiscais')
+            .getPublicUrl(nomeArquivoUnico);
+
+        urlNotaFinal = urlPublica.publicUrl;
+    }
+
+    const { error: insertError } = await _supabase
+        .from('gastos_arraia')
+        .insert([{
+            descricao: desc,
+            valor: valor,
+            categoria: cat,
+            url_nota: urlNotaFinal
+        }]);
+
+    if (insertError) {
+        alert("Erro ao salvar despesa: " + insertError.message);
+    } else {
+        alert("Gasto lançado com sucesso no Portal!");
+        document.getElementById('form-adm-gastos').reset();
+        carboardGastosRecarregar();
+    }
+
+    btn.disabled = false;
+    btn.innerText = "Lançar Despesa";
+}
+
+function carboardGastosRecarregar() {
+    carregarGastosPainelAdmin();
+    carregarDadosPainelAdmin();
+}
+
+async function deletarGastoArraia(id, urlNota) {
+    if (!confirm("Deseja apagar essa despesa? Isso removerá a nota fiscal do Portal.")) return;
+
+    if (urlNota && urlNota.trim() !== "") {
+        const nomeArquivo = urlNota.split('/').pop();
+        await _supabase.storage.from('notas_fiscais').remove([nomeArquivo]);
+    }
+
+    const { error } = await _supabase
+        .from('gastos_arraia')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        alert("Erro ao apagar: " + error.message);
+    } else {
+        carboardGastosRecarregar();
+    }
+}
+
+// Vincula as funções globais para o formulário HTML conseguir dispará-las
+window.lancarGastoArraia = lancarGastoArraia;
+window.deletarGastoArraia = deletarGastoArraia;

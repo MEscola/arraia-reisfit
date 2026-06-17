@@ -21,6 +21,41 @@
             font-weight: bold;
             border: 1px solid rgba(76, 175, 80, 0.3);
         }
+
+        /* SISTEMA DE ABAS MODERNAS */
+        .abas-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .aba-botao {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .aba-botao.ativa {
+            background: #00BCD4;
+            color: #fff;
+            border-color: #00BCD4;
+            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.2);
+        }
+        .secao-aba {
+            display: none;
+        }
+        .secao-aba.ativa {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -50,28 +85,112 @@
                 </div>
             </div>
 
-            <!-- Linha de controle com as duas informações lado a lado conforme seu esboço -->
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #777; text-transform: uppercase; font-weight: bold; margin-bottom: 15px; padding: 0 4px; margin-top: -6px;">
-                <div>total de pessoas: <strong id="total-pessoas-contagem" style="color: #fff;">0</strong></div>
-                <div>confirmados: <strong id="total-pessoas-confirmadas" style="color: #4CAF50;">0</strong></div>
+            <!-- MENU DE NAVEGAÇÃO POR ABAS -->
+            <div class="abas-container">
+                <button class="aba-botao ativa" onclick="alternarAbaAdm('aba-participantes', this)">
+                    👥 Participantes
+                </button>
+                <button class="aba-botao" onclick="alternarAbaAdm('aba-transparencia', this)">
+                    📊 Lançar Gastos
+                </button>
             </div>
 
-            <!-- Tabela Administrativa modo Escuro -->
-            <div class="form-card" style="padding: 10px; overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Participante</th>
-                            <th>Valor</th>
-                            <th>Status</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-adm-corpo">
-                        <!-- Injetado dinamicamente via js/adm.js -->
-                    </tbody>
-                </table>
+            <!-- ========================================== -->
+            <!-- ABA 1: GERENCIAMENTO DE PARTICIPANTES -->
+            <!-- ========================================== -->
+            <div id="aba-participantes" class="secao-aba ativa">
+                <!-- Linha de controle com as duas informações lado a lado -->
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #777; text-transform: uppercase; font-weight: bold; margin-bottom: 15px; padding: 0 4px; margin-top: -6px;">
+                    <div>total de pessoas: <strong id="total-pessoas-contagem" style="color: #fff;">0</strong></div>
+                    <div>confirmados: <strong id="total-pessoas-confirmadas" style="color: #4CAF50;">0</strong></div>
+                </div>
+
+                <!-- Tabela Administrativa modo Escuro -->
+                <div class="form-card" style="padding: 10px; overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Participante</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-adm-corpo">
+                            <!-- Injetado dinamicamente via js/adm.js -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <!-- ========================================== -->
+            <!-- ABA 2: FORMULÁRIO DE GASTOS E COMPROVANTES -->
+            <!-- ========================================== -->
+            <div id="aba-transparencia" class="secao-aba">
+                <div class="form-card" style="background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h3 style="color: #00BCD4; margin-top: 0; margin-bottom: 5px;">📊 Lançar Custo / Despesa</h3>
+                    <p style="color: #aaa; font-size: 11px; margin-bottom: 15px;">O cupom anexado ficará visível no Portal da Transparência dos alunos.</p>
+
+                    <form id="form-adm-gastos" onsubmit="lancarGastoArraia(event)" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="form-group">
+                            <label style="color:#eee; font-size:11px; font-weight:bold; display:block; margin-bottom:4px;">Descrição do Item:</label>
+                            <input type="text" id="gasto-descricao" required placeholder="Ex: Carnes e carvão (Guanabara)" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; border-radius:6px; box-sizing:border-box; font-size:13px;">
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="color:#eee; font-size:11px; font-weight:bold; display:block; margin-bottom:4px;">Valor Pago:</label>
+                                <input type="number" step="0.01" id="gasto-valor" required placeholder="R$ 0,00" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; border-radius:6px; box-sizing:border-box; font-size:13px;">
+                            </div>
+
+                            <div class="form-group" style="flex: 1;">
+                                <label style="color:#eee; font-size:11px; font-weight:bold; display:block; margin-bottom:4px;">Categoria:</label>
+                                <select id="gasto-categoria" required style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; border-radius:6px; box-sizing:border-box; font-size:13px; height: 37px;">
+                                    <option value="Alimentação">Alimentação</option>
+                                    <option value="Bebidas">Bebidas</option>
+                                    <option value="Decoração / Logística">Decoração</option>
+                                    <option value="Brindes e Bingo">Brindes / Bingo</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="color:#00BCD4; font-size:11px; font-weight:bold; display:block; margin-bottom:4px;">Foto do Cupom / Nota Fiscal (Opcional):</label>
+                            <input type="file" id="gasto-arquivo" accept="image/*,application/pdf" style="width:100%; background:#1a1a1a; color:#ccc; padding:6px; border-radius:6px; font-size:12px; border: 1px dashed #00BCD4; box-sizing: border-box;">
+                        </div>
+
+                        <button type="submit" id="btn-salvar-gasto" style="background: #00BCD4; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; width: 100%; margin-top: 5px;">Lançar Despesa</button>
+                    </form>
+                </div>
+
+                <!-- Tabela de Notas Fiscais Já Lançadas -->
+                <div class="form-card" style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h4 style="margin:0; color:#fff; font-size: 14px;">📋 Cupons Registrados</h4>
+                        <div style="font-size:11px; background:rgba(244,67,54,0.1); color:#f44336; border:1px solid rgba(244,67,54,0.2); padding:4px 8px; border-radius:6px; font-weight:bold;" id="total-gastos-painel">
+                            R$ 0,00
+                        </div>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table style="width:100%; border-collapse:collapse; text-align:left;">
+                            <thead>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:#00BCD4; font-size:11px; text-transform:uppercase;">
+                                    <th style="padding:6px;">Item</th>
+                                    <th style="padding:6px;">Valor</th>
+                                    <th style="padding:6px; text-align:center;">Nota</th>
+                                    <th style="padding:6px; text-align:center;">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-adm-gastos-corpo">
+                                <!-- Injetado dinamicamente via js/adm.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -97,17 +216,25 @@
     <script src="js/supabase.js?v=4"></script>
     <script src="js/adm.js?v=4"></script>
     <script>
+        // Função simples para alternar as abas na tela
+        function alternarAbaAdm(idAba, botaoClicado) {
+            // Remove a classe ativa de todas as abas
+            document.querySelectorAll('.secao-aba').forEach(secao => secao.classList.remove('ativa'));
+            document.querySelectorAll('.aba-botao').forEach(btn => btn.classList.remove('ativa'));
+            
+            // Ativa a aba e o botão correto
+            document.getElementById(idAba).classList.add('ativa');
+            botaoClicado.classList.add('ativa');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
-            // Checa se a memória temporária diz que você já foi autorizada na tela anterior
             const loginValido = sessionStorage.getItem('reisfit_adm_auth');
 
             if (loginValido === 'autorizado') {
-                // Se sim, libera direto sem pedir nada!
                 const blocoSeguro = document.getElementById('bloco-seguro');
                 if (blocoSeguro) blocoSeguro.classList.add('autorizado');
                 if (typeof carregarPainelADM === 'function') carregarPainelADM();
             } else {
-                // Só pede a senha se você tentar acessar o link direto digitando na barra de endereço
                 const senhaDigitada = prompt("Acesso Restrito. Digite a senha do Financeiro ADM:");
                 if (!senhaDigitada) {
                     window.location.href = "index.html?v=4";
