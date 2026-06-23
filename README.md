@@ -86,4 +86,4 @@ Embora a arquitetura atual tenha sido desenhada de forma simplificada para atend
 
 ## 🤖 Desenvolvimento Auxiliado por IA
 
-Este projeto foi desenvolvido utilizando práticas modernas de engenharia de software com o suporte de Inteligência Artificial (Generative AI), utilizando ferramentas como Gemini. A tecnologia foi integrada ao fluxo de trabalho como um copiloto técnico para a aceleração do ciclo de entrega, auxiliando no refinamento de funções assíncronas em JavaScript, sincronização de regras lógicas do balancete financeiro e estruturação das tabelas no Supabase.
+Este projeto foi desenvolvido utilizando práticas de engenharia de software com o suporte de Inteligência Artificial (Generative AI), utilizando como ferramenta principal o Google Gemini. A tecnologia foi integrada ao fluxo de trabalho como um copiloto técnico para a aceleração do ciclo de entrega, auxiliando no refinamento de funções assíncronas em JavaScript, sincronização de regras lógicas do balancete financeiro e estruturação das tabelas no Supabase.
