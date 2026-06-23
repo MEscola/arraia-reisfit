@@ -38,30 +38,32 @@ async function carregarPortalTransparencia() {
         return;
     }
 
-    // --- 💰 PROCESSAR RECURSOS RECEBIDOS ---
-    let faturamentoPublicoGeral = 0;   // Bate 100% com o "total-publico-geral" da ADM
-    let faturamentoPatrocinios = 0;     // Bate 100% com o "total-patrocinios" da ADM
+    // --- PROCESSAR RECURSOS RECEBIDOS ---
+    let faturamentoPublicoAlunos = 0;       // Gaveta dos Alunos comuns
+    let faturamentoPatrocinios = 0;         // Gaveta dos Parceiros (Doações/PIX Puro)
+    let faturamentoInscricoesParceiros = 0; // Inscrições de acompanhantes vindas de parceiros
 
     if (inscritos) {
         inscritos.forEach(item => {
             const statusAtual = item.status_pix || "Pendente";
             
-            // Definições de Categorias idênticas à ADM
             const ehParceiro = statusAtual.includes("Box Friendly") || statusAtual.includes("Parceria") || statusAtual.includes("Parceiro");
             const ehParceiro100 = statusAtual.includes("Isenção Total") || statusAtual.includes("100");
+            const ehParceiro50 = statusAtual.includes("Isenção Titular") || statusAtual.includes("50");
 
-            // Validação de Status idêntica à ADM
             const estaValidado = statusAtual === "Confirmado" || statusAtual === "Pago" || statusAtual === "Parceria Confirmada" || statusAtual.includes("Pago");
 
             if (estaValidado) {
                 const conjuge = Number(item.qtd_conjuge) || 0;
                 const amigos = Number(item.qtd_amigos) || 0;
                 
-                // Lógica exata de cálculo da ADM
                 let valorInscricaoCalculada = 0;
                 if (ehParceiro) {
                     if (ehParceiro100) {
                         valorInscricaoCalculada = 0;
+                    } else if (ehParceiro50) {
+                        // Isenção Titular: ignora os 15 do titular e soma cônjuge e amigos
+                        valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
                     } else {
                         valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
                     }
@@ -69,19 +71,21 @@ async function carregarPortalTransparencia() {
                     valorInscricaoCalculada = 15 + (conjuge * 15) + (amigos * 20);
                 }
 
-                // Distribuição idêntica à divisão da ADM
-                faturamentoPublicoGeral += valorInscricaoCalculada;
                 if (ehParceiro) {
-                    faturamentoPatrocinios += (Number(item.total_pix) || 0);
+                    faturamentoInscricoesParceiros += valorInscricaoCalculada;
+                    const valorDoacaoPura = Number(item.total_pix) || 0;
+                    faturamentoPatrocinios += valorDoacaoPura;
+                } else {
+                    faturamentoPublicoAlunos += valorInscricaoCalculada;
                 }
             }
         });
     }
 
-    // A arrecadação total é a soma exata das duas gavetas da ADM
-    const arrecadacaoTotal = faturamentoPublicoGeral + faturamentoPatrocinios;
+    // A arrecadação total é a soma de tudo o que entrou de fato no evento
+    const arrecadacaoTotal = faturamentoPublicoAlunos + faturamentoInscricoesParceiros + faturamentoPatrocinios;
 
-    // --- 📊 PROCESSAR SAÍDAS E CATEGORIAS ---
+    // --- PROCESSAR SAÍDAS E CATEGORIAS ---
     let custosTotal = 0;
     const resumoCategorias = {};
 
@@ -136,10 +140,10 @@ async function carregarPortalTransparencia() {
         if (blocoCategorias) blocoCategorias.innerHTML = '<p style="color:#666; font-size:13px;">Nenhum gasto para resumir.</p>';
     }
 
-    // --- 🎯 ATUALIZAR ACUMULADORES NA TELA ---
+    // --- ATUALIZAR ACUMULADORES NA TELA ---
     const saldoFinalCaixa = arrecadacaoTotal - custosTotal;
 
-    // Conecta os valores nos ID's corretos do topo (Resumo Geral)
+    // Atualiza Bloco Novo: RESUMO GERAL (No topo)
     if (txtGeralArrecadado) txtGeralArrecadado.innerText = `R$ ${arrecadacaoTotal.toFixed(2)}`;
     if (txtGeralGasto) txtGeralGasto.innerText = `R$ ${custosTotal.toFixed(2)}`;
     if (txtGeralSaldo) {
@@ -147,15 +151,17 @@ async function carregarPortalTransparencia() {
         txtGeralSaldo.style.color = saldoFinalCaixa >= 0 ? "#00BCD4" : "#F44336";
     }
 
-    // Conecta os valores nos ID's do Bloco 1 (Recursos Recebidos Detalhado)
-    if (txtAlunos) txtAlunos.innerText = `R$ ${faturamentoPublicoGeral.toFixed(2)}`;
+    // AJUSTE DE SINCRONIZAÇÃO AQUI:
+    // O público geral da ADM soma alunos + ingressos de convidados de parceiros
+    if (txtAlunos) txtAlunos.innerText = `R$ ${(faturamentoPublicoAlunos + faturamentoInscricoesParceiros).toFixed(2)}`;
+    // O patrocínio exibe apenas o PIX puro do parceiro (os R$ 50,00)
     if (txtParceiros) txtParceiros.innerText = `R$ ${faturamentoPatrocinios.toFixed(2)}`;
     if (txtArrecadacao) txtArrecadacao.innerText = `R$ ${arrecadacaoTotal.toFixed(2)}`;
 
-    // Conecta o valor no ID do Bloco 2 (Total Gasto)
+    // Atualiza Bloco 2: Total Gasto
     if (txtTotalGasto) txtTotalGasto.innerText = `R$ ${custosTotal.toFixed(2)}`;
 
-    // Conecta o valor no ID do Bloco 3 (Saldo Final - Conforme sua sugestão de texto)
+    // Atualiza Bloco 3: Saldo Final Simplificado
     if (txtSaldoFinal) {
         txtSaldoFinal.innerText = `R$ ${saldoFinalCaixa.toFixed(2)}`;
         
