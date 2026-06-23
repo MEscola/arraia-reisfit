@@ -62,6 +62,9 @@ async function carregarDadosPainelAdmin() {
             if (ehParceiro) {
                 if (ehParceiro100) {
                     valorInscricaoCalculada = 0;
+                } else if (ehParceiro50) {
+                    // Isenção Titular (50): Titular R$ 0, mas paga convidados (Cônjuge R$ 15, Amigos R$ 20)
+                    valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
                 } else {
                     valorInscricaoCalculada = (conjuge * 15) + (amigos * 20);
                 }
@@ -97,6 +100,7 @@ async function carregarDadosPainelAdmin() {
                 if (ehParceiro) {
                     if (ehParceiro100) statusAoDesfazer = 'Box Friendly (Isenção Total)';
                     else if (ehParceiro50) statusAoDesfazer = 'Box Friendly (Isenção Titular)';
+                    else statusAoDesfazer = 'Box Friendly';
                 }
                 botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', '${statusAoDesfazer}')" style="background:#555; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Desfazer</button>`;
             } else {
@@ -104,6 +108,7 @@ async function carregarDadosPainelAdmin() {
                 if (ehParceiro) {
                     if (ehParceiro100) statusAoValidar = 'Pago (Parceiro 100)';
                     else if (ehParceiro50) statusAoValidar = 'Pago (Parceiro 50)';
+                    else statusAoValidar = 'Pago (Parceiro)';
                 }
                 botaoAcaoStatusHTML = `<button onclick="alterarStatusRapido('${item.id}', '${statusAoValidar}')" style="background:#4CAF50; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Validar</button>`;
             }
@@ -114,7 +119,7 @@ async function carregarDadosPainelAdmin() {
                 
                 celulaValorHTML = `
                     <td style="padding: 12px; font-weight: bold; white-space: nowrap; vertical-align: top;" id="celula-pai-valor-${item.id}">
-                        <div style="color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;" onclick="abrirCaixinhaDoacaoAbaixo('${item.id}', ${valorDoacaoPura})" title="Clique para editar a doação">
+                        <div style="color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation(); abrirCaixinhaDoacaoAbaixo('${item.id}', ${valorDoacaoPura})" title="Clique para editar a doação">
                             R$ ${valorInscricaoCalculada},00 <span style="font-size: 13px;">🤝</span>
                         </div>
                         ${textoDoacaoInjetada}
@@ -218,7 +223,6 @@ function abrirCaixinhaDoacaoAbaixo(id, doacaoAtual) {
 
 async function salvarDoacaoParceiro(id) {
     const valorDoado = Number(document.getElementById(`input-doacao-${id}`).value) || 0;
-
     const celulaNome = document.getElementById(`celula-nome-${id}`);
     let eh100 = false;
     let eh50 = false;
@@ -232,7 +236,7 @@ async function salvarDoacaoParceiro(id) {
     if (valorDoado === 0) {
         if (eh100) novoStatusPix = 'Box Friendly (Isenção Total)';
         else if (eh50) novoStatusPix = 'Box Friendly (Isenção Titular)';
-        else novoStatusPix = 'Pendente';
+        else novoStatusPix = 'Box Friendly';
     } else {
         if (eh100) novoStatusPix = 'Pago (Parceiro 100)';
         else if (eh50) novoStatusPix = 'Pago (Parceiro 50)';
@@ -330,7 +334,7 @@ async function salvarEdicaoCadastroCompleta(id) {
     const criancasAlt = document.getElementById('edit-criancas-' + id).value.trim();
     const salgadoAlt = document.getElementById('edit-sabor-salgado-' + id).value.trim();
     const doceAlt = document.getElementById('edit-sabor-doce-' + id).value.trim();
-    const parceriaAlt = document.getElementById('edit-parceria-' + id).value;
+    const partnershipAlt = document.getElementById('edit-parceria-' + id).value;
 
     if (!nomeAlt) {
         alert("O nome é obrigatório.");
@@ -338,8 +342,9 @@ async function salvarEdicaoCadastroCompleta(id) {
     }
 
     let novoStatusFinal = "Pendente";
-    if (parceriaAlt === "100") novoStatusFinal = "Box Friendly (Isenção Total)";
-    else if (parceriaAlt === "50") novoStatusFinal = "Box Friendly (Isenção Titular)";
+    if (partnershipAlt === "100") novoStatusFinal = "Box Friendly (Isenção Total)";
+    else if (partnershipAlt === "50") novoStatusFinal = "Box Friendly (Isenção Titular)";
+    else novoStatusFinal = "Pendente";
 
     let saborFinal = "";
     if (salgadoAlt && doceAlt) {
@@ -394,7 +399,6 @@ async function deletarInscricao(id) {
 // 2. PORTAL DA TRANSPARÊNCIA: GESTÃO DE GASTOS
 // ==========================================
 
-// Função para listar os gastos cadastrados na aba correspondente do ADM
 async function carregarGastosPainelAdmin() {
     const tabelaGastosCorpo = document.getElementById('tabela-adm-gastos-corpo');
     const containerTotalGastos = document.getElementById('total-gastos-painel');
@@ -425,7 +429,6 @@ async function carregarGastosPainelAdmin() {
                 ? `<a href="${gasto.url_nota}" target="_blank" style="color: #00BCD4; font-weight:bold; text-decoration:none;">📄 Ver</a>` 
                 : `<span style="color:#555; font-style:italic;">Não</span>`;
 
-            // CORREÇÃO: Alinhado exatamente com o número de colunas (4) do seu novo adm.html
             tabelaGastosCorpo.innerHTML += `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px;">
                     <td style="padding: 10px; color:#fff;">
@@ -449,7 +452,6 @@ async function carregarGastosPainelAdmin() {
     }
 }
 
-// Lógica de Envio de arquivo e cadastro de despesa
 async function lancarGastoArraia(event) {
     event.preventDefault();
     
@@ -478,9 +480,6 @@ async function lancarGastoArraia(event) {
             .storage
             .from('noatas_fiscais')
             .upload(nomeArquivoUnico, arquivo);
-
-        console.log("Resultado do Upload Data:", uploadData);
-        console.log("Resultado do Upload Error:", uploadError);
 
         if (uploadError) {
             alert("Erro ao fazer upload da imagem: " + uploadError.message);
@@ -543,6 +542,5 @@ async function deletarGastoArraia(id, urlNota) {
     }
 }
 
-// Vincula as funções globais para o formulário HTML conseguir dispará-las
 window.lancarGastoArraia = lancarGastoArraia;
 window.deletarGastoArraia = deletarGastoArraia;
