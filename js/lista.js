@@ -1,6 +1,6 @@
 // js/lista.js
 
-// Carrega a lista pública de inscritos com layout de Cards modernos e contador festivo estratégico
+// Carrega a lista pública de inscritos com layout de Cards  e contador 
 async function carregarListaPublica() {
     const containerLista = document.getElementById('lista-alunos-container');
     if (!containerLista) return;
@@ -85,7 +85,7 @@ async function carregarListaPublica() {
         `;
     });
 
-    // TÁTICA DA MARCIA: O card de empolgação só aparece se bater a meta mínima de pessoas pagas
+    // O card de empolgação só aparece se bater a meta mínima de pessoas pagas
     const META_MINIMA_PESSOAS = 15; // Mude esse número para quanto você achar melhor!
     let htmlContadorTopo = '';
 
