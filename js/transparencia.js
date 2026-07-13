@@ -118,7 +118,7 @@ async function carregarPortalTransparencia() {
             blocoCategorias.innerHTML = '';
             
             const emojis = {
-                "Alimentação": "🌭", "Bebidas": "🥤", "Brindes/Bingo": "🎁", 
+                "Descartáveis": "🌭", "Bebidas": "🥤", "Brindes/Bingo": "🎁", 
                 "Decoração": "🎨", "Outros": "📦", "Logística": "🚚", "Infraestrutura": "🎪"
             };
 
