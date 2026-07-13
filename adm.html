@@ -90,8 +90,11 @@
                 <button class="aba-botao ativa" onclick="alternarAbaAdm('aba-participantes', this)">
                     👥 Participantes
                 </button>
+                 <button class="aba-botao" onclick="alternarAbaAdm('aba-receitas', this)">
+                    💰 Receitas
+                </button>
                 <button class="aba-botao" onclick="alternarAbaAdm('aba-transparencia', this)">
-                    📊 Lançar Gastos
+                    📊 Despesas
                 </button>
             </div>
 
@@ -124,7 +127,118 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- ABA 2: FORMULÁRIO DE GASTOS E COMPROVANTES -->
+<!-- ABA 2: RECEITAS -->
+<!-- ========================================== -->
+
+<div id="aba-receitas" class="secao-aba">
+
+    <!-- Formulário -->
+    <div class="form-card"
+        style="background: rgba(255,255,255,.02); padding:15px; border-radius:14px; border:1px solid rgba(255,255,255,.05);">
+
+        <h3 style="color:#00BCD4; margin:0 0 5px 0;">
+            💰 Lançar Receita
+        </h3>
+
+        <p style="color:#aaa; font-size:11px; margin-bottom:15px;">
+            Registre contribuições de parceiros, doações ou qualquer outra receita recebida para o evento.
+        </p>
+
+        <form id="form-adm-receitas"
+              onsubmit="lancarReceita(event)"
+              style="display:flex; flex-direction:column; gap:12px;">
+
+            <div class="form-group">
+                <label style="color:#eee; font-size:11px; font-weight:bold; display:block; margin-bottom:4px;">
+                    Descrição da Receita
+                </label>
+
+                <input
+                    type="text"
+                    id="receita-descricao"
+                    required
+                    placeholder="Ex: Parceiro João Silva"
+                    style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; border-radius:6px; box-sizing:border-box; font-size:13px;">
+            </div>
+
+            <div class="form-group">
+                <label style="color:#eee; font-size:11px; font-weight:bold; display:block; margin-bottom:4px;">
+                    Valor Recebido
+                </label>
+
+                <input
+                    type="number"
+                    id="receita-valor"
+                    step="0.01"
+                    required
+                    placeholder="R$ 0,00"
+                    style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; border-radius:6px; box-sizing:border-box; font-size:13px;">
+            </div>
+
+            <button
+                type="submit"
+                id="btn-salvar-receita"
+                style="background:#00BCD4; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">
+
+                Salvar Receita
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- Lista de receitas -->
+    <div class="form-card"
+        style="margin-top:15px; background:rgba(0,0,0,.2); padding:10px; border-radius:14px; border:1px solid rgba(255,255,255,.03);">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+
+            <h4 style="margin:0; color:#fff; font-size:14px;">
+                💵 Receitas Registradas
+            </h4>
+
+            <div id="total-receitas-painel"
+                 style="font-size:11px; background:rgba(76,175,80,.1); color:#4CAF50; border:1px solid rgba(76,175,80,.25); padding:4px 8px; border-radius:6px; font-weight:bold;">
+
+                R$ 0,00
+
+            </div>
+
+        </div>
+
+        <div style="overflow-x:auto;">
+
+            <table style="width:100%; border-collapse:collapse; text-align:left;">
+
+                <thead>
+
+                    <tr style="border-bottom:1px solid rgba(255,255,255,.1); color:#00BCD4; font-size:11px; text-transform:uppercase;">
+
+                        <th style="padding:6px;">Descrição</th>
+                        <th style="padding:6px;">Valor</th>
+                        <th style="padding:6px; text-align:center;">Ação</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tabela-adm-receitas-corpo">
+
+                    <!-- Preenchido futuramente pelo adm.js -->
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+            <!-- ========================================== -->
+            <!-- ABA 3: FORMULÁRIO DE GASTOS E COMPROVANTES -->
             <!-- ========================================== -->
             <div id="aba-transparencia" class="secao-aba">
                 <div class="form-card" style="background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05);">
@@ -190,6 +304,8 @@
                     </div>
                 </div>
             </div>
+
+           
 
         </div>
     </div>
