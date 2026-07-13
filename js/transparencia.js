@@ -105,10 +105,10 @@ async function carregarPortalTransparencia() {
 
             tabelaCorpo.innerHTML += `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px;">
-                    <td style="padding: 5px 2px; color:#aaa;">${gasto.categoria}</td>
-                    <td style="padding: 5px 2px; color:#fff; font-weight: 500;">${gasto.descricao}</td>
-                    <td style="padding: 5px 2px; color:#fff; font-weight:bold; white-space:nowrap;">R$ ${valorGasto.toFixed(2)}</td>
-                    <td style="padding: 5px 2px; text-align:center;">${botaoNotaHTML}</td>
+                    <td style="padding: 8px 2px; color:#aaa;">${gasto.categoria}</td>
+                    <td style="padding: 8px 2px; color:#fff; font-weight: 500;">${gasto.descricao}</td>
+                    <td style="padding: 8px 2px; color:#fff; font-weight:bold; white-space:nowrap;">R$ ${valorGasto.toFixed(2)}</td>
+                    <td style="padding: 8px 2px; text-align:center;">${botaoNotaHTML}</td>
                 </tr>
             `;
         });
