@@ -47,8 +47,8 @@ O projeto foi construído utilizando **HTML5, CSS3 e JavaScript**, com o **Supab
 ## 🎥 Demonstração
 
 <p align="center">
-<img src="docs/gif/demo1.gif" width="300">
-<img src="docs/gif/demo2.gif" width="300">
+<img src="docs/gif/demo1.gif" width="200">
+<img src="docs/gif/demo2.gif" width="200">
 <br>
   <em>Demonstração do fluxo completo da aplicação.</em>
 </p>
