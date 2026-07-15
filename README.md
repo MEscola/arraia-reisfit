@@ -18,12 +18,12 @@ O projeto foi construído utilizando **HTML5, CSS3 e JavaScript**, com o **Supab
 <table>
   <tr>
     <td align="center">
-      <img src="docs/screenshots/cadastro.png" width="400">
+      <img src="docs/screenshots/cadastro.png" width="200">
       <br>
       <strong>Página de Inscrição</strong>
     </td>
     <td align="center">
-      <img src="docs/screenshots/admin.png" width="400">
+      <img src="docs/screenshots/admin.png" width="200">
       <br>
       <strong>Painel Administrativo</strong>
     </td>
@@ -31,12 +31,12 @@ O projeto foi construído utilizando **HTML5, CSS3 e JavaScript**, com o **Supab
 
   <tr>
     <td align="center">
-      <img src="docs/screenshots/lista.png" width="400">
+      <img src="docs/screenshots/lista.png" width="200">
       <br>
       <strong>Lista Pública</strong>
     </td>
     <td align="center">
-      <img src="docs/screenshots/transparencia.png" width="400">
+      <img src="docs/screenshots/transparencia.png" width="200">
       <br>
       <strong>Portal da Transparência</strong>
     </td>
@@ -47,8 +47,8 @@ O projeto foi construído utilizando **HTML5, CSS3 e JavaScript**, com o **Supab
 ## 🎥 Demonstração
 
 <p align="center">
-<img src="docs/gif/demo1.gif" width="400">
-<img src="docs/gif/demo2.gif" width="400">
+<img src="docs/gif/demo1.gif" width="300">
+<img src="docs/gif/demo2.gif" width="300">
 <br>
   <em>Demonstração do fluxo completo da aplicação.</em>
 </p>
