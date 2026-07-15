@@ -15,20 +15,43 @@ O projeto foi construído utilizando **HTML5, CSS3 e JavaScript**, com o **Supab
 
 ## 📸 Telas do Sistema
 
-| Página de Inscrição | Painel Administrativo |
-|----------------------|----------------------|
-| ![](docs/screenshots/cadastro.png) | ![](docs/screenshots/admin.png) |
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/cadastro.png" width="400">
+      <br>
+      <strong>Página de Inscrição</strong>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/admin.png" width="400">
+      <br>
+      <strong>Painel Administrativo</strong>
+    </td>
+  </tr>
 
-| Lista Pública | Portal da Transparência |
-|---------------|------------------------|
-| ![](docs/screenshots/lista.png) | ![](docs/screenshots/transparencia.png) |
-
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/lista.png" width="400">
+      <br>
+      <strong>Lista Pública</strong>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/transparencia.png" width="400">
+      <br>
+      <strong>Portal da Transparência</strong>
+    </td>
+  </tr>
+</table>
 ---
 
 ## 🎥 Demonstração
 
-<img src="docs/gif/demo1.gif" width="600">
-<img src="docs/gif/demo2.gif" width="600">
+<p align="center">
+<img src="docs/gif/demo1.gif" width="400">
+<img src="docs/gif/demo2.gif" width="400">
+<br>
+  <em>Demonstração do fluxo completo da aplicação.</em>
+</p>
 ---
 
 ## Funcionalidades
