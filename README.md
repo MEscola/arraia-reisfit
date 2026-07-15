@@ -1,89 +1,235 @@
-# Sistema de Inscrição e Gestão - Arraiá ReisFit
+#  Sistema de Gestão para o Arraiá ReisFit
 
-Este repositório contém o código-fonte de uma aplicação web voltada para o gerenciamento de inscrições, controle de público, fluxo financeiro e prestação de contas do evento Arraiá ReisFit. O sistema foi desenvolvido com foco na usabilidade em dispositivos móveis (Mobile-First) e utiliza uma arquitetura baseada em serviços para persistência de dados em tempo real.
+Aplicação web desenvolvida para gerenciar inscrições, controle de participantes, administração financeira e prestação de contas do evento **Arraiá ReisFit**.
 
-## Estrutura do Projeto
+O projeto foi construído utilizando **HTML5, CSS3 e JavaScript**, com o **Supabase** como Backend as a Service (BaaS), permitindo sincronização em tempo real entre os módulos públicos e administrativos.
 
-O ecossistema da aplicação é distribuído nos seguintes arquivos principais:
+---
 
-* **`index.html`**: Interface principal contendo o formulário público de inscrição para os participantes.
-* **`lista.html`**: Interface pública que exibe a listagem de pratos confirmados e o tamanho dos grupos de forma organizada.
-* **`adm.html`**: Painel restrito voltado para a administração financeira e gerenciamento de participantes do evento.
-* **`transparencia.html`**: Portal público de prestação de contas, exibindo o balanço real de arrecadação, categorias de despesas e notas fiscais/comprovantes.
-* **`js/supabase.js`**: Arquivo de configuração central da conexão e inicialização do cliente do banco de dados (Supabase).
-* **`js/cadastro.js`**: Scripts responsáveis pela validação e envio dos dados do formulário de inscrição.
-* **`js/lista.js`**: Componente lógico que realiza a busca assíncrona dos dados e renderiza os cartões informativos na listagem pública.
-* **`js/adm.js`**: Módulo administrativo que processa indicadores financeiros, possibilita a validação de pagamentos via PIX, além de permitir a edição e exclusão de registros diretamente na interface (inline).
-* **`js/transparencia.js`**: Módulo que processa os recursos recebidos em sincronia com a ADM, calcula custos por categoria e renderiza a tabela de despesas do portal.
-* **`css/style.css`**: Folha de estilos centralizada que garante a responsividade e o padrão visual escuro da aplicação.
+## 🚀 Demonstração
 
-## Tecnologias Utilizadas
 
-* **Frontend**: HTML5 Puro, CSS3 Avançado (recursos de Flexbox e responsividade integrada) e JavaScript Moderno (ES6+ utilizando sintaxe assíncrona Async/Await).
-* **Backend como Serviço (BaaS)**: Supabase (PostgreSQL) para armazenamento de dados, consultas em tempo real e persistência das modificações.
-* **Segurança de Banco de Dados**: Políticas de Segurança em Nível de Linha (Row Level Security - RLS) configuradas diretamente no banco de dados para isolar operações de leitura (`SELECT`), escrita (`INSERT`), modificação (`UPDATE`) e remoção (`DELETE`).
+**🔗 Aplicação:** https://mescola.github.io/arraia-reisfit/app.html
 
-## Funcionalidades Implementadas
+---
 
-### Painel Público & Inscrições
-* Formulário de cadastro dinâmico com captura de acompanhantes (cônjuges e amigos) e categorização de pratos.
-* Visualização pública de confirmados em formato estruturado verticalmente para evitar problemas de exibição em smartphones.
-* Badges indicativos de status de confirmação com cores estilizadas de forma sutil.
+## 📸 Telas do Sistema
 
-### Portal da Transparência (Prestação de Contas)
-* Bloco de Resumo Geral exibindo o total arrecadado, total gasto e o saldo final do caixa em tempo real.
-* Divisão detalhada de recursos recebidos: "Participantes" (soma de inscrições comuns + taxas de acompanhantes) e "Parceiros" (faturamento puro de patrocínios/doações via PIX), em perfeita sincronia com as gavetas financeiras da ADM.
-* Gráfico/Resumo dinâmico de despesas ordenado automaticamente pelo maior gasto por categoria (Alimentação, Bebidas, Brindes/Bingo, Decoração, Infraestrutura, etc.).
-* Tabela de prestação de contas detalhada com link direto para visualização de notas fiscais ou comprovantes anexados (`url_nota`).
+| Página de Inscrição | Painel Administrativo |
+|----------------------|----------------------|
+| ![](docs/screenshots/cadastro.png) | ![](docs/screenshots/admin.png) |
+
+| Lista Pública | Portal da Transparência |
+|---------------|------------------------|
+| ![](docs/screenshots/lista.png) | ![](docs/screenshots/transparencia.png) |
+
+---
+
+## 🎥 Demonstração
+
+<img src="docs/demo1.gif" width="900">
+<img src="docs/demo2.gif" width="900">
+---
+
+## Funcionalidades
+
+### Inscrição de Participantes
+
+- Cadastro de participantes
+- Cadastro de cônjuge e acompanhantes
+- Seleção do prato compartilhado
+- Cálculo automático do valor da inscrição
+- Validação dos campos obrigatórios
+
+### Lista Pública
+
+- Exibição dos participantes confirmados
+- Organização dos pratos cadastrados
+- Quantidade de acompanhantes
+- Interface responsiva para dispositivos móveis
 
 ### Painel Administrativo
-* Autenticação local em sessão (`sessionStorage`) com validação de senha para proteção do ambiente restrito.
-* Balancete financeiro automatizado exibindo o faturamento real arrecadado e a receita prevista em tempo real.
-* Métrica automatizada de público pagante real com base nos custos de acompanhantes e regras de isenção customizadas (Isenção Total 100% e Isenção Titular 50%).
-* Edição inline de registros, permitindo correções de nomes, quantidades de convidados, pratos e valores sem redefinir a página.
-* Sistema de exclusão com dupla confirmação para segurança operacional contra remoções acidentais.
 
-## Configuração do Banco de Dados
+- Controle financeiro
+- Confirmação de pagamentos via PIX
+- Edição inline de registros
+- Exclusão com dupla confirmação
+- Indicadores financeiros em tempo real
 
-Para o pleno funcionamento da aplicação, o banco de dados no Supabase deve conter a seguinte estrutura de tabelas e colunas:
+### Portal da Transparência
 
-### 1. Tabela `cadastro_arraia` (Participantes)
-* `id` (int8, Chave Primária, Autoincremento)
-* `nome` (text)
-* `categoria_prato` (text)
-* `sabor_prato` (text, opcional)
-* `qtd_conjuge` (int4)
-* `qtd_amigos` (int4)
-* `total_pix` (numeric)
-* `status_pix` (text)
-* `created_at` (timestamptz)
+- Total arrecadado
+- Total gasto
+- Saldo do evento
+- Gastos agrupados por categoria
+- Links para notas fiscais e comprovantes
 
-### 2. Tabela `gastos_arraia` (Prestação de Contas)
-* `id` (int8, Chave Primária, Autoincremento)
-* `categoria` (text) — Ex: *Alimentação, Bebidas, Infraestrutura*
-* `descricao` (text) — Ex: *Aluguel de cadeiras e pula-pula*
-* `valor` (numeric) — Valor do gasto realizado
-* `url_nota` (text, opcional) — Link do arquivo/comprovante armazenado
-* `created_at` (timestamptz)
+---
 
-> 🔐 **Políticas de RLS:** As tabelas possuem o Row Level Security ativado, associadas às roles `anon` e `authenticated` para garantir o fluxo correto e protegido de dados entre o formulário, a lista pública, o portal da transparência e o painel administrativo.
+# Arquitetura
 
-## Boas Práticas e Controle de Cache
+```text
+Participante
+      │
+      ▼
+ Formulário
+      │
+      ▼
+  Supabase
+      │
+ ┌────┴──────────┐
+ ▼               ▼
+Lista        Administração
+                    │
+                    ▼
+        Portal da Transparência
+```
 
-Para o deploy em servidores de arquivos estáticos (como o GitHub Pages), o projeto adota a prática de **Cache Busting** nas chamadas de scripts do ecossistema. Sempre que modificações estruturais forem realizadas nos arquivos lógicos (`js/`), a string de versão no arquivo HTML correspondente deve ser incrementada para forçar o navegador do usuário a carregar o código mais recente:
+---
 
-```html
-<script src="js/transparencia.js?v=5"></script>
+## 📁 Estrutura do Projeto
 
-## Próximas Evoluções (Roadmap)
+```text
+.
+├── index.html
+├── lista.html
+├── adm.html
+├── transparencia.html
+│
+├── css
+│   └── style.css
+│
+├── js
+│   ├── supabase.js
+│   ├── cadastro.js
+│   ├── lista.js
+│   ├── adm.js
+│   └── transparencia.js
+│
+|── screenshots
+```
 
-Embora a arquitetura atual tenha sido desenhada de forma simplificada para atender a um evento pontual com máxima agilidade, o ecossistema foi estruturado pensando em futuras expansões para um modelo SaaS corporativo. Os próximos passos planejados para o projeto incluem:
+---
 
-* **Autenticação Robusta (RBAC):** Integração com o módulo nativo do `Supabase Auth` via JWT, substituindo a validação local por login por e-mail/senha com níveis de acesso (Admin, Organizador, Participante).
-* **Segurança de RLS Estrita:** Refatoração das políticas de Row Level Security para bloquear completamente operações de `UPDATE` e `DELETE` para usuários anônimos (`anon`), amarrando a escrita estritamente à role `authenticated`.
-* **Proteção de Dados Sensíveis:** Ocultação de colunas financeiras (como `total_pix` e `status_pix`) nas requisições da listagem pública, garantindo a privacidade dos dados na camada do banco de dados.
-* **Automação de Comprovantes:** Integração com APIs de Storage para upload direto das imagens de notas fiscais e geração de PDFs automatizados de recibos para prestadores de serviço pessoa física.
+## 🛠️ Tecnologias Utilizadas
 
-## 🤖 Desenvolvimento Auxiliado por IA
+| Tecnologia | Finalidade |
+|------------|------------|
+| HTML5 | Estrutura da aplicação |
+| CSS3 | Layout responsivo e estilização |
+| JavaScript (ES6+) | Regras de negócio |
+| Supabase | Backend como Serviço |
+| PostgreSQL | Banco de Dados |
+| Row Level Security (RLS) | Segurança dos dados |
 
-Este projeto foi desenvolvido utilizando práticas de engenharia de software com o suporte de Inteligência Artificial (Generative AI), utilizando como ferramenta principal o Google Gemini. A tecnologia foi integrada ao fluxo de trabalho como um copiloto técnico para a aceleração do ciclo de entrega, auxiliando no refinamento de funções assíncronas em JavaScript, sincronização de regras lógicas do balancete financeiro e estruturação das tabelas no Supabase.
+---
+
+## 🔒 Segurança
+
+O projeto utiliza recursos do Supabase para proteção dos dados:
+
+- Row Level Security (RLS)
+- Controle de permissões
+- Políticas de acesso para leitura e escrita
+- Isolamento entre módulos públicos e administrativos
+
+---
+
+## Modelo de Banco de Dados
+
+### cadastro_arraia
+
+| Campo | Tipo |
+|--------|------|
+| id | int8 |
+| nome | text |
+| categoria_prato | text |
+| sabor_prato | text |
+| qtd_conjuge | int4 |
+| qtd_amigos | int4 |
+| total_pix | numeric |
+| status_pix | text |
+| created_at | timestamptz |
+
+---
+
+### gastos_arraia
+
+| Campo | Tipo |
+|--------|------|
+| id | int8 |
+| categoria | text |
+| descricao | text |
+| valor | numeric |
+| url_nota | text |
+| created_at | timestamptz |
+
+---
+
+## Configuração
+
+Configure o arquivo responsável pela conexão com o Supabase.
+
+```javascript
+const SUPABASE_URL = "...";
+const SUPABASE_KEY = "...";
+```
+
+---
+
+## Deploy
+
+O projeto pode ser hospedado facilmente em:
+
+- GitHub Pages
+- Vercel
+- Netlify
+
+Como o backend utiliza Supabase, não existe necessidade de servidor próprio.
+
+---
+
+## Roadmap
+
+- [ ] Login utilizando Supabase Auth
+- [ ] Controle de permissões (RBAC)
+- [ ] Upload de comprovantes pelo Storage
+- [ ] Dashboard com gráficos financeiros
+- [ ] Exportação em PDF
+- [ ] Exportação em Excel
+- [ ] Relatórios por participante
+- [ ] Histórico de eventos
+- [ ] Cadastro de múltiplos eventos
+
+---
+## 💡 Principais Desafios Técnicos
+
+Durante o desenvolvimento, alguns desafios exigiram soluções específicas:
+
+- Sincronização em tempo real entre o painel administrativo e o portal da transparência.
+- Separação da arrecadação entre participantes e parceiros sem duplicidade de valores.
+- Cálculo automático de métricas financeiras e público pagante.
+- Implementação de políticas de segurança utilizando Row Level Security (RLS) no Supabase.
+- Desenvolvimento de uma interface Mobile First para uso durante o evento.
+
+## 🤖 Desenvolvimento com IA
+
+Este projeto contou com o suporte de Inteligência Artificial Generativa durante o processo de desenvolvimento, utilizando o **Google Gemini** como ferramenta de apoio.
+
+A IA foi utilizada como assistente técnico para:
+
+- Estruturação da arquitetura
+- Revisão de código
+- Refatoração de funções JavaScript
+- Modelagem do banco de dados
+- Otimização das consultas ao Supabase
+
+Todas as decisões de arquitetura, implementação e validação permaneceram sob responsabilidade do desenvolvedor.
+
+---
+
+## 👩‍💻 Desenvolvido por
+
+**Márcia Escolástico da Silva**
+
+- LinkedIn: https://linkedin.com/in/SEU-LINKEDIN
