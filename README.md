@@ -27,8 +27,8 @@ O projeto foi construído utilizando **HTML5, CSS3 e JavaScript**, com o **Supab
 
 ## 🎥 Demonstração
 
-<img src="docs/demo1.gif" width="900">
-<img src="docs/demo2.gif" width="900">
+<img src="docs/gif/demo1.gif" width="900">
+<img src="docs/gif/demo2.gif" width="900">
 ---
 
 ## Funcionalidades
@@ -232,4 +232,4 @@ Todas as decisões de arquitetura, implementação e validação permaneceram so
 
 **Márcia Escolástico da Silva**
 
-- LinkedIn: https://linkedin.com/in/SEU-LINKEDIN
+- LinkedIn: https://www.linkedin.com/in/marcia-escolastico-44882436/
